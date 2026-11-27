@@ -47,15 +47,9 @@
     z-index: 0;
   }
 
-  /* ── GATE SCREEN ── */
+  /* ── GATE SCREEN (stripped — open clone) ── */
   #gate {
-    position: fixed;
-    inset: 0;
-    z-index: 100;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--bg);
+    display: none !important;
   }
 
   .gate-card {
@@ -184,7 +178,7 @@
 
   /* ── APP SHELL ── */
   #app {
-    display: none;
+    display: block;
     position: relative;
     z-index: 1;
     min-height: 100vh;
@@ -1004,70 +998,11 @@
   </div>
 </div>
 
-<!-- GATE -->
-<div id="gate">
-  <div class="gate-card">
-    <div class="gate-logo">
-      <svg class="radar-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <clipPath id="hexClipGate">
-            <polygon points="24,4 43,14.5 43,33.5 24,44 5,33.5 5,14.5"/>
-          </clipPath>
-        </defs>
-        <!-- Hexagone principal -->
-        <polygon points="24,4 43,14.5 43,33.5 24,44 5,33.5 5,14.5"
-          fill="none" stroke="#00FFB2" stroke-width="1.5" opacity="0.9"/>
-        <!-- Ping (ondulation sortante) -->
-        <polygon points="24,4 43,14.5 43,33.5 24,44 5,33.5 5,14.5"
-          fill="none" stroke="#00FFB2" stroke-width="1.5"
-          style="transform-origin:24px 24px; animation: radar-ping 3s ease-out infinite; opacity:0.5;"/>
-        <!-- Grille radar clippée dans l'hexagone -->
-        <g clip-path="url(#hexClipGate)">
-          <circle cx="24" cy="24" r="7"  fill="none" stroke="#00FFB2" stroke-width="0.5" opacity="0.25"/>
-          <circle cx="24" cy="24" r="13" fill="none" stroke="#00FFB2" stroke-width="0.5" opacity="0.18"/>
-          <circle cx="24" cy="24" r="19" fill="none" stroke="#00FFB2" stroke-width="0.5" opacity="0.12"/>
-          <line x1="24" y1="4"  x2="24" y2="44" stroke="#00FFB2" stroke-width="0.4" opacity="0.14"/>
-          <line x1="4"  y1="24" x2="44" y2="24" stroke="#00FFB2" stroke-width="0.4" opacity="0.14"/>
-          <line x1="9"  y1="9"  x2="39" y2="39" stroke="#00FFB2" stroke-width="0.3" opacity="0.09"/>
-          <line x1="39" y1="9"  x2="9"  y2="39" stroke="#00FFB2" stroke-width="0.3" opacity="0.09"/>
-          <!-- Balayage animé -->
-          <path d="M24,24 L24,4 A20,20 0 0,1 42,33 Z" fill="#00FFB2" opacity="0.12"
-            style="transform-origin:24px 24px; animation: radar-spin 3s linear infinite;"/>
-          <line x1="24" y1="24" x2="24" y2="4" stroke="#00FFB2" stroke-width="1.2" opacity="0.75" stroke-linecap="round"
-            style="transform-origin:24px 24px; animation: radar-spin 3s linear infinite;"/>
-        </g>
-        <!-- Blip cible -->
-        <circle cx="32" cy="13" r="1.8" fill="#00FFB2" opacity="0.9"/>
-        <circle cx="32" cy="13" r="3.5" fill="none" stroke="#00FFB2" stroke-width="0.7" opacity="0.5"/>
-        <!-- Point central -->
-        <circle cx="24" cy="24" r="2.5" fill="#00FFB2"/>
-      </svg>
-    </div>
-    <h1 class="gate-title">AppHex <span>Radar</span></h1>
-    <p class="gate-sub">Live PulseChain swap tracker.<br><strong>Hub Pages = showcase</strong> — feed opens without Connect.</p>
-
-    <div>
-      <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-        <circle cx="5" cy="5" r="4" stroke="currentColor" stroke-width="1"/>
-        <path d="M3 5h4M5 3v4" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
-      </svg>
-      Local token gate (optional): 1× <a class="token-badge" href="https://apphex.win/blockscout/#/address/0x0B276d33119773a77F878c65C0d74cd5EA71AC30?tab=contract">APPHEX</a> when you run this HTML on localhost
-    </div>
-
-    <button class="btn-connect" id="btn-connect" onclick="connectWallet()">
-      Connect Wallet
-    </button>
-
-    <div id="gate-status"></div>
-
-    <p class="gate-disclaimer">
-      Showcase on github.io skips Connect. Run the kit copy on localhost if you want the APPHEX gate. Radar does not send transactions.
-    </p>
-  </div>
-</div>
-<div id="showcase-banner" class="showcase-banner" style="display:none" role="status">
-  <strong>Showcase peek</strong> — live feed without Connect. Do not treat github.io as a wallet front end.
-  Token gate: download the <a href="https://github.com/ihelpmaybe/pulse-hex-kit" target="_blank" rel="noopener">Pulse HEX kit</a> → <code>tools/apphex-radar/</code> → serve on localhost.
+<!-- GATE stripped — open clone keeps the feed, drops APPHEX paywall -->
+<div id="gate" hidden aria-hidden="true"></div>
+<div id="showcase-banner" class="showcase-banner" role="status">
+  <strong>Open clone</strong> — live PulseChain swap feed. No APPHEX wallet gate.
+  Source kit: <a href="https://github.com/ihelpmaybe/pulse-hex-kit" target="_blank" rel="noopener">pulse-hex-kit</a> → <code>tools/apphex-radar/</code>
 </div>
 
 <!-- APP -->
@@ -1104,7 +1039,7 @@
       <div class="blocknum"></div>
       <div class="wallet-pill">
         <div class="wallet-pill-dot"></div>
-        <span id="wallet-display">0x...</span>
+        <span id="wallet-display">Open</span>
       </div>
     </div>
   </header>
@@ -1208,8 +1143,6 @@ const PULSECHAIN_SCAN2 = 'https://apphex.win/sq/?tx=';
 const CHAIN_ID        = '0x171'; // 369
 
 // APPHEX token contract on PulseChain
-const APPHEX_CONTRACT = '0x0B276d33119773a77F878c65C0d74cd5EA71AC30';
-
 // Core tokens (display only — no RPC resolution needed, server sends symbols)
 const CORE_TOKENS = {
   'WPLS': true, 'HEX': true, 'INC': true,
@@ -1299,142 +1232,23 @@ async function renderWalletList() {
   }
 }
 
-function isShowcase() {
-  try {
-    if (/\.github\.io$/i.test(location.hostname)) return true;
-    if (new URLSearchParams(location.search).get('showcase') === '1') return true;
-  } catch (_) {}
-  return false;
-}
-
-/** Hub Pages / kit peek — skip Connect; feed is public. */
-function bootShowcase() {
-  if (!isShowcase()) return false;
-  const banner = document.getElementById('showcase-banner');
-  if (banner) banner.style.display = 'block';
-  const btn = document.getElementById('btn-connect');
-  if (btn) {
-    btn.textContent = 'Run local for APPHEX gate';
-    btn.onclick = () => {
-      window.open('https://github.com/ihelpmaybe/pulse-hex-kit', '_blank', 'noopener,noreferrer');
-    };
-  }
+/** Always open — APPHEX Connect gate removed from this clone. */
+function bootOpen() {
   walletAddress = null;
-  document.getElementById('gate').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
+  const gate = document.getElementById('gate');
+  if (gate) gate.style.display = 'none';
+  const app = document.getElementById('app');
+  if (app) app.style.display = 'block';
   const wd = document.getElementById('wallet-display');
-  if (wd) wd.textContent = 'Showcase';
+  if (wd) wd.textContent = 'Open';
   connectRadar();
   return true;
 }
 
-// ─── WALLET / TOKEN GATE ─────────────────────────────────────────────────────
-async function connectWallet() {
-  if (isShowcase()) {
-    window.open('https://github.com/ihelpmaybe/pulse-hex-kit', '_blank', 'noopener,noreferrer');
-    return;
-  }
-  if (discoveredWallets.size === 0 && window.ethereum) {
-    selectWallet(null); // null = use window.ethereum
-    return;
-  }
-  openWalletModal();
-}
-
-async function selectWallet(rdns) {
-  closeWalletModal();
-
-  const btn    = document.getElementById('btn-connect');
-  const status = document.getElementById('gate-status');
-
-
-  btn.disabled = true;
-  btn.innerHTML = '<span class="loading-spinner"></span>Connecting…';
-  status.textContent = '';
-  status.className = '';
-
-    // Resolve provider: EIP-6963 detail or fall back to window.ethereum
-  const detail   = rdns ? discoveredWallets.get(rdns) : null;
-  const provider = detail?.provider ?? window.ethereum;
-
-  if (!provider) {
-    status.textContent = '⚠ No wallet provider found.';
-    status.className = 'error';
-    btn.disabled = false;
-    btn.textContent = 'Connect Wallet';
-    return;
-  }
-
-
-  try {
-    // Request accounts
-    const accounts = await provider.request({ method: 'eth_requestAccounts' });
-    walletAddress = accounts[0];
-
-    // Switch to PulseChain if needed
-    status.textContent = 'Switching to PulseChain…';
-    try {
-      await provider.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: CHAIN_ID }] });
-    } catch(e) {
-      if (e.code === 4902) {
-        await provider.request({
-          method: 'wallet_addEthereumChain',
-          params: [{
-            chainId: CHAIN_ID,
-            chainName: 'PulseChain',
-            nativeCurrency: { name: 'Pulse', symbol: 'PLS', decimals: 18 },
-            rpcUrls: ['https://rpc.pulsechain.com'],
-            blockExplorerUrls: ['https://scan.pulsechain.com']
-          }]
-        });
-      }
-    }
-
-    // Check APPHEX balance via wallet provider (no direct RPC call)
-    status.textContent = 'Verifying APPHEX token balance…';
-    const balData = '0x70a08231' + walletAddress.slice(2).padStart(64, '0');
-    const balHex  = await provider.request({
-      method: 'eth_call',
-      params: [{ to: APPHEX_CONTRACT, data: balData }, 'latest']
-    });
-    const balance  = BigInt(balHex || '0x0');
-    const oneToken = BigInt(10 ** 18); // APPHEX decimals = 18
-
-    if (balance < 1n*oneToken) {
-      status.innerHTML = '✗ Insufficient APPHEX balance. You need at least 1 <a href="https://apphex.win/blockscout/#/address/0x0B276d33119773a77F878c65C0d74cd5EA71AC30?tab=contract">APPHEX</a>.';
-      status.innerHTML += '<a class="token-badge" href="https://pulsex.mypinata.cloud/ipfs/bafybeiaq4jgcpz4hdzwid6letizdnhijlp6lu5ivcjcp5vbgpgf54jknn4/#/?outputCurrency=0x0B276d33119773a77F878c65C0d74cd5EA71AC30">Buy on PulseX</a>'
-
-      status.className = 'error';
-      btn.disabled = false;
-      btn.textContent = 'Connect Wallet';
-      return;
-    }
-
-    // Success
-    status.className = 'success';
-    status.textContent = '✓ Access granted — loading Radar…';
-
-    await sleep(800);
-    launchApp();
-
-  } catch(e) {
-    status.textContent = '⚠ ' + (e.message || 'Connection failed.');
-    status.className = 'error';
-    btn.disabled = false;
-    btn.textContent = 'Connect Wallet';
-  }
-}
-
-// ─── LAUNCH APP ──────────────────────────────────────────────────────────────
-function launchApp() {
-  document.getElementById('gate').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  document.getElementById('wallet-display').textContent = walletAddress
-    ? shortAddr(walletAddress)
-    : (isShowcase() ? 'Showcase' : '0x…');
-
-  connectRadar();
-}
+// Dead stubs — gate UI removed; keep names so any leftover onclick cannot brick the page
+async function connectWallet() { /* no-op: gate stripped */ }
+async function selectWallet(_rdns) { closeWalletModal(); }
+function launchApp() { bootOpen(); }
 
 navigator.serviceWorker?.getRegistrations().then(registrations => {
   registrations.forEach(registration => {
@@ -1840,7 +1654,7 @@ function initBurgerMenu() {
 
 function boot() {
   initBurgerMenu();
-  bootShowcase();
+  bootOpen();
 }
 
 // Initialize after DOM is ready

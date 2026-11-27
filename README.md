@@ -21,9 +21,9 @@ Hub `/pulse-hexmob/` and `tools/hexmob/` are **look-only** (no Connect).
 
 See `tools/hexmob/README.md`.
 
-### appHEX Radar — showcase peek
+### appHEX Radar — open clone
 
-Hub `/pulse-apphex-radar/` opens the live swap feed **without** Connect. Optional APPHEX token gate = serve `tools/apphex-radar/` on localhost. See `tools/apphex-radar/README.md`.
+Hub `/pulse-apphex-radar/` and `tools/apphex-radar/` are the live swap feed with the APPHEX wallet gate **stripped**. See `tools/apphex-radar/README.md`.
 
 ## What’s inside
 
@@ -33,7 +33,7 @@ Hub `/pulse-apphex-radar/` opens the live swap feed **without** Connect. Optiona
 | HEXmob / TShare | Stake UI (showcase on hub; wallet = run local) | go.hex.com downtime |
 | Δ Discounts | Maximus Δ + majors on Pulse | LookIntoMaxi paid Δ |
 | HEX daily stats | Pulse day history + live mirror button | HEXDailyStats / hexstats.today |
-| appHEX Radar | Live Pulse swap feed (showcase on hub; APPHEX gate = local) | apphex.win Radar |
+| appHEX Radar | Live Pulse swap feed (open — no APPHEX gate) | apphex.win Radar |
 
 HEX daily also includes `tools/hexdaily/worker-src/` — Cloudflare Worker clone of the feed ([mrmcgit/hex-stats](https://github.com/mrmcgit/hex-stats)). See `tools/hexdaily/DEPLOY.md`.
 
