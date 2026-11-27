@@ -1,7 +1,8 @@
 # Pulse HEX launch kit (copy-paste)
 
-**Live hub:** [ihelpmaybe.github.io/pulse-hex-kit](https://ihelpmaybe.github.io/pulse-hex-kit/)  
-**Source:** [github.com/ihelpmaybe/pulse-hex-kit](https://github.com/ihelpmaybe/pulse-hex-kit)
+**Live (each tool has its own site on the hub):** [ihelpmaybe.github.io](https://ihelpmaybe.github.io/)  
+- [HEX daily](https://ihelpmaybe.github.io/pulse-hex-daily/) · [Δ Discounts](https://ihelpmaybe.github.io/pulse-delta-discounts/) · [HSA](https://ihelpmaybe.github.io/pulse-hex-stake-analyzer/) · [HEXmob](https://ihelpmaybe.github.io/pulse-hexmob/) · [Radar](https://ihelpmaybe.github.io/pulse-apphex-radar/) · [SQ](https://ihelpmaybe.github.io/pulse-apphex-sq/)  
+**Source / zip kit:** [github.com/ihelpmaybe/pulse-hex-kit](https://github.com/ihelpmaybe/pulse-hex-kit)
 
 **Anyone offline:** zip this folder → unzip anywhere → double-click `START.cmd` → hub opens in the browser.
 

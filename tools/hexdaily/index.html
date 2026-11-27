@@ -3,6 +3,11 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script>
+    if (location.hostname === "ihelpmaybe.github.io" && /\/pulse-hex-kit\/tools\/hexdaily\/?/.test(location.pathname)) {
+      location.replace("https://ihelpmaybe.github.io/pulse-hex-daily/");
+    }
+  </script>
   <title>HEX daily stats · kit</title>
   <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
   <style>
