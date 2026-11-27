@@ -6,5 +6,7 @@ Thumbs.db
 *.log
 .env
 .env.*
+tools/pulse-alerts/config.env
+tools/pulse-alerts/.alert-state.json
 .vscode/
 .idea/

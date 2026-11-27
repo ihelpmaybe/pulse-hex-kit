@@ -21,9 +21,9 @@ Hub `/pulse-hexmob/` and `tools/hexmob/` are **look-only** (no Connect).
 
 See `tools/hexmob/README.md`.
 
-### appHEX — not shipped
+### Pulse alerts (Telegram) — easy clone
 
-Radar / SQ / HardHex / charts live on [apphex.win](https://apphex.win/!/) and are **not OSS**. We do not ship mirrors. Product notes only in the vault.
+`tools/pulse-alerts/` — MIT, Python stdlib. BotFather token → `config.env` → `START.cmd`. Big PulseX / HEX swaps → your chat. See `tools/pulse-alerts/README.md`.
 
 ## What’s inside
 
@@ -33,6 +33,8 @@ Radar / SQ / HardHex / charts live on [apphex.win](https://apphex.win/!/) and ar
 | HEXmob / TShare | Stake UI (showcase on hub; wallet = run local) | go.hex.com downtime |
 | Δ Discounts | Maximus Δ + majors on Pulse | LookIntoMaxi paid Δ |
 | HEX daily stats | Pulse day history + live mirror button | HEXDailyStats / hexstats.today |
+| Pulse alerts | Telegram pings on big PulseX / HEX swaps (MIT) | — |
+
 HEX daily also includes `tools/hexdaily/worker-src/` — Cloudflare Worker clone of the feed ([mrmcgit/hex-stats](https://github.com/mrmcgit/hex-stats)). See `tools/hexdaily/DEPLOY.md`.
 
 ## Needs
