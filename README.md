@@ -4,16 +4,29 @@
 - [HEX daily](https://ihelpmaybe.github.io/pulse-hex-daily/) · [Δ Discounts](https://ihelpmaybe.github.io/pulse-delta-discounts/) · [HSA](https://ihelpmaybe.github.io/pulse-hex-stake-analyzer/) · [HEXmob](https://ihelpmaybe.github.io/pulse-hexmob/) · [Radar](https://ihelpmaybe.github.io/pulse-apphex-radar/) · [SQ](https://ihelpmaybe.github.io/pulse-apphex-sq/)  
 **Source / zip kit:** [github.com/ihelpmaybe/pulse-hex-kit](https://github.com/ihelpmaybe/pulse-hex-kit)
 
+**Hub Pages = showcase.** Look in the browser. Do **not** treat github.io as a wallet front end.
+
 **Anyone offline:** zip this folder → unzip anywhere → double-click `START.cmd` → hub opens in the browser.
 
 No LookIntoHex / LookIntoMaxi / PulseStats. Those sites use private indexers you can’t honestly “clone.” This kit ships **open substitutes** anyone can run.
+
+### HEXmob — run local to stake
+
+Hub `/pulse-hexmob/` and `tools/hexmob/` are **look-only** (no Connect).
+
+1. Clone [gruvin/hexmob.win](https://github.com/gruvin/hexmob.win)
+2. Free Reown project at [cloud.reown.com](https://cloud.reown.com) — allowlist **`http://localhost:5173`** only (not `*.github.io`)
+3. `.env.local` → `VITE_REOWN_APPKIT_ID=<your id>`
+4. `pnpm install` → `pnpm exec vite` → Connect on localhost
+
+See `tools/hexmob/README.md`.
 
 ## What’s inside
 
 | Open this | Job | Instead of |
 |-----------|-----|------------|
 | HEX Stake Analyzer | Paste wallets → stakes / HSI / HTT | LookIntoHex portfolio views |
-| HEXmob / TShare | Stake UI (wallet connect) | go.hex.com downtime |
+| HEXmob / TShare | Stake UI (showcase on hub; wallet = run local) | go.hex.com downtime |
 | Δ Discounts | Maximus Δ + majors on Pulse | LookIntoMaxi paid Δ |
 | HEX daily stats | Pulse day history + live mirror button | HEXDailyStats / hexstats.today |
 
