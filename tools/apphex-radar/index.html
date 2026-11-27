@@ -3,11 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script>
-  if (location.hostname === "ihelpmaybe.github.io" && /\/pulse-hex-kit\/tools\/apphex-radar\/?/.test(location.pathname)) {
-    location.replace("https://ihelpmaybe.github.io/pulse-apphex-radar/");
-  }
-</script>
 <title>AppHex Radar — PulseChain Swaps</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -173,6 +168,19 @@
     color: var(--text-faint);
     line-height: 1.5;
   }
+
+  .showcase-banner {
+    position: relative;
+    z-index: 60;
+    padding: 10px 16px;
+    font-size: 13px;
+    line-height: 1.4;
+    background: rgba(255, 107, 53, 0.16);
+    border-bottom: 1px solid rgba(255, 107, 53, 0.45);
+    color: var(--text);
+  }
+  .showcase-banner a { color: var(--accent); font-weight: 600; }
+  .showcase-banner code { font-family: 'JetBrains Mono', monospace; font-size: 0.9em; }
 
   /* ── APP SHELL ── */
   #app {
@@ -1036,14 +1044,14 @@
       </svg>
     </div>
     <h1 class="gate-title">AppHex <span>Radar</span></h1>
-    <p class="gate-sub">Live PulseChain swap tracker.<br>Connect your wallet to verify token access.</p>
+    <p class="gate-sub">Live PulseChain swap tracker.<br><strong>Hub Pages = showcase</strong> — feed opens without Connect.</p>
 
     <div>
       <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
         <circle cx="5" cy="5" r="4" stroke="currentColor" stroke-width="1"/>
         <path d="M3 5h4M5 3v4" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
       </svg>
-      Required: 1× <a class="token-badge" href="https://apphex.win/blockscout/#/address/0x0B276d33119773a77F878c65C0d74cd5EA71AC30?tab=contract">APPHEX token</a>
+      Local token gate (optional): 1× <a class="token-badge" href="https://apphex.win/blockscout/#/address/0x0B276d33119773a77F878c65C0d74cd5EA71AC30?tab=contract">APPHEX</a> when you run this HTML on localhost
     </div>
 
     <button class="btn-connect" id="btn-connect" onclick="connectWallet()">
@@ -1053,9 +1061,13 @@
     <div id="gate-status"></div>
 
     <p class="gate-disclaimer">
-      Wallet connection is read-only. AppHex Radar only checks your APPHEX balance — no transactions are sent.
+      Showcase on github.io skips Connect. Run the kit copy on localhost if you want the APPHEX gate. Radar does not send transactions.
     </p>
   </div>
+</div>
+<div id="showcase-banner" class="showcase-banner" style="display:none" role="status">
+  <strong>Showcase peek</strong> — live feed without Connect. Do not treat github.io as a wallet front end.
+  Token gate: download the <a href="https://github.com/ihelpmaybe/pulse-hex-kit" target="_blank" rel="noopener">Pulse HEX kit</a> → <code>tools/apphex-radar/</code> → serve on localhost.
 </div>
 
 <!-- APP -->
@@ -1287,8 +1299,41 @@ async function renderWalletList() {
   }
 }
 
+function isShowcase() {
+  try {
+    if (/\.github\.io$/i.test(location.hostname)) return true;
+    if (new URLSearchParams(location.search).get('showcase') === '1') return true;
+  } catch (_) {}
+  return false;
+}
+
+/** Hub Pages / kit peek — skip Connect; feed is public. */
+function bootShowcase() {
+  if (!isShowcase()) return false;
+  const banner = document.getElementById('showcase-banner');
+  if (banner) banner.style.display = 'block';
+  const btn = document.getElementById('btn-connect');
+  if (btn) {
+    btn.textContent = 'Run local for APPHEX gate';
+    btn.onclick = () => {
+      window.open('https://github.com/ihelpmaybe/pulse-hex-kit', '_blank', 'noopener,noreferrer');
+    };
+  }
+  walletAddress = null;
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  const wd = document.getElementById('wallet-display');
+  if (wd) wd.textContent = 'Showcase';
+  connectRadar();
+  return true;
+}
+
 // ─── WALLET / TOKEN GATE ─────────────────────────────────────────────────────
 async function connectWallet() {
+  if (isShowcase()) {
+    window.open('https://github.com/ihelpmaybe/pulse-hex-kit', '_blank', 'noopener,noreferrer');
+    return;
+  }
   if (discoveredWallets.size === 0 && window.ethereum) {
     selectWallet(null); // null = use window.ethereum
     return;
@@ -1384,7 +1429,9 @@ async function selectWallet(rdns) {
 function launchApp() {
   document.getElementById('gate').style.display = 'none';
   document.getElementById('app').style.display = 'block';
-  document.getElementById('wallet-display').textContent = shortAddr(walletAddress);
+  document.getElementById('wallet-display').textContent = walletAddress
+    ? shortAddr(walletAddress)
+    : (isShowcase() ? 'Showcase' : '0x…');
 
   connectRadar();
 }
@@ -1711,11 +1758,12 @@ function connectRadar() {
     let msg;
     try { msg = JSON.parse(e.data); } catch { return; }
     
-    if (msg.type === 'ready' && walletAddress) {
+    if (msg.type === 'ready') {
       console.log('[radar]', msg);
-      wsSend({type:'addr', addr: walletAddress})+
+      if (walletAddress) wsSend({ type: 'addr', addr: walletAddress });
       handleStats(msg.stats);
-      document.getElementsByClassName('blocknum')[0].innerText = msg.block
+      const bn = document.getElementsByClassName('blocknum')[0];
+      if (bn) bn.innerText = msg.block;
     }
       
     if (!isPaused) handleSwap(msg);
@@ -1790,11 +1838,16 @@ function initBurgerMenu() {
   });
 }
 
-// Initialize burger menu after DOM is ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initBurgerMenu);
-} else {
+function boot() {
   initBurgerMenu();
+  bootShowcase();
+}
+
+// Initialize after DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', boot);
+} else {
+  boot();
 }
 
 
