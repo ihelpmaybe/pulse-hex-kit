@@ -23,7 +23,7 @@ See `tools/hexmob/README.md`.
 
 ### appHEX — not shipped
 
-Radar / SQ are **not OSS**. Proprietary mirrors were withdrawn from hub + kit. Product shape only: live swap tape / block board — rebuild later on public Pulse data if wanted.
+Radar / SQ / HardHex / charts live on [apphex.win](https://apphex.win/!/) and are **not OSS**. We do not ship mirrors. Product notes only in the vault.
 
 ## What’s inside
 
