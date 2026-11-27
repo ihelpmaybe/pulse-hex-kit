@@ -1,0 +1,172 @@
+/* Shared local UI kit + themes
+   Official HEX / PulseChain colors from https://hex.com/downloads */
+
+:root,
+[data-theme="operator"] {
+  /* True black desk — gray backgrounds hurt eyes (pump 2026-10-17) */
+  --bg: #000000;
+  --bg-glow: transparent;
+  --panel: #0c0c0c;
+  --panel-2: #141414;
+  --ink: #eceae4;
+  --muted: #8b8680;
+  --faint: #5c5854;
+  --accent: #4aab8a;
+  --accent-dim: #2f6f5a;
+  --line: #2a2a2a;
+  --line-soft: #1a1a1a;
+  --err: #d97878;
+  --warn: #c9a84a;
+  --radius: 12px;
+  --font: "Segoe UI", Candara, system-ui, sans-serif;
+  --mono: ui-monospace, "Cascadia Code", Consolas, monospace;
+  --grip-bg: #1a1a1a;
+  --grip-line: #9aa3b5;
+  --primary-ink: #0a1210;
+}
+
+/* Soft sakura: plum night + blossom pink */
+[data-theme="cherry"] {
+  --bg: #000000;
+  --bg-glow: radial-gradient(ellipse 80% 60% at 70% 0%, rgba(255, 158, 187, 0.12), transparent 55%);
+  --panel: #120c10;
+  --panel-2: #1a1216;
+  --ink: #f6e8ee;
+  --muted: #b896a4;
+  --faint: #8a6a78;
+  --accent: #ff8fb5;
+  --accent-dim: #c45a7e;
+  --line: #5a3a48;
+  --line-soft: #3a2832;
+  --err: #e88a9a;
+  --warn: #e8b4c8;
+  --grip-bg: #3a2832;
+  --grip-line: #e8b4c8;
+  --primary-ink: #1a0810;
+}
+
+/* HEX.com — black / navy + HEX pink #f0f (hex.com/downloads) */
+[data-theme="hex"] {
+  --bg: #000000;
+  --bg-glow: linear-gradient(145deg, rgba(255, 0, 255, 0.12) 0%, transparent 42%),
+    radial-gradient(ellipse 70% 50% at 100% 0%, rgba(255, 61, 61, 0.15), transparent 50%);
+  --panel: #0c0c10;
+  --panel-2: #14141c;
+  --ink: #f5f0f7;
+  --muted: #9a8fa8;
+  --faint: #6a6070;
+  --accent: #ff00ff;
+  --accent-dim: #b000b0;
+  --line: #3a2a44;
+  --line-soft: #252030;
+  --err: #ff3d3d;
+  --warn: #ff851f;
+  --grip-bg: #221828;
+  --grip-line: #ff0f6f;
+  --primary-ink: #110011;
+}
+
+/* PulseChain — navy + violet→cyan brand arc (hex.com/downloads PulseChain gradient) */
+[data-theme="pulse"] {
+  --bg: #000000;
+  --bg-glow: linear-gradient(160deg, rgba(128, 0, 255, 0.18) 0%, rgba(0, 128, 255, 0.10) 45%, transparent 70%),
+    radial-gradient(ellipse 60% 40% at 0% 100%, rgba(0, 234, 255, 0.10), transparent 50%);
+  --panel: #080810;
+  --panel-2: #101018;
+  --ink: #e8eef8;
+  --muted: #8890b0;
+  --faint: #5c6480;
+  --accent: #00eaff;
+  --accent-dim: #0080ff;
+  --line: #3a3080;
+  --line-soft: #221e40;
+  --err: #ff3344;
+  --warn: #e619e6;
+  --grip-bg: #1a1840;
+  --grip-line: #8000ff;
+  --primary-ink: #020810;
+}
+
+/* Sailor Venus — navy night, orange bow, gold hair */
+[data-theme="venus"] {
+  --bg: #000000;
+  --bg-glow: radial-gradient(ellipse 70% 50% at 85% 0%, rgba(255, 138, 30, 0.16), transparent 55%),
+    radial-gradient(ellipse 50% 40% at 0% 100%, rgba(255, 213, 106, 0.08), transparent 50%);
+  --panel: #100c08;
+  --panel-2: #1a140c;
+  --ink: #fff6e8;
+  --muted: #c4a574;
+  --faint: #8a7050;
+  --accent: #ff8a1e;
+  --accent-dim: #c46a12;
+  --line: #5a3a18;
+  --line-soft: #2a1c10;
+  --err: #e85a4a;
+  --warn: #ffd56a;
+  --grip-bg: #2a1c10;
+  --grip-line: #ffd56a;
+  --primary-ink: #1a0e04;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  background: #000000;
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font);
+  color: var(--ink);
+  background: var(--bg, #0a0a0a);
+  background-image: var(--bg-glow);
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1 {
+  margin: 0 0 0.2rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+.sub {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+button {
+  font: inherit;
+  font-size: 0.84rem;
+  padding: 0.42rem 0.8rem;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  cursor: pointer;
+  color: var(--ink);
+  background: var(--panel-2);
+  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+
+button:disabled { opacity: 0.4; cursor: not-allowed; }
+button.primary {
+  background: var(--accent-dim);
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+  font-weight: 600;
+}
+button.primary:hover:not(:disabled) {
+  background: var(--accent);
+  color: var(--primary-ink);
+}
+button.ghost:hover:not(:disabled) { border-color: var(--muted); }
+button.on {
+  border-color: color-mix(in srgb, var(--accent) 60%, var(--line));
+  color: var(--accent);
+}
+
+.muted { color: var(--muted); }
+.err { color: var(--err); }

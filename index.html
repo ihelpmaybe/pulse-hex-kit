@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pulse HEX launch kit</title>
+  <style>
+    :root { color-scheme: dark; --bg:#0b0d10; --fg:#e8eaed; --muted:#9aa0a6; --line:#2a2f36; --panel:#14181e; --acc:#6dcf8a; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 15px/1.45 system-ui, Segoe UI, sans-serif; background: var(--bg); color: var(--fg); }
+    .wrap { max-width: 960px; margin: 0 auto; padding: 28px 20px 48px; }
+    h1 { margin: 0 0 8px; font-size: 1.6rem; }
+    .lede { color: var(--muted); margin: 0 0 22px; max-width: 40rem; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+    a.card {
+      display: flex; flex-direction: column; gap: 6px;
+      padding: 14px 14px 12px; text-decoration: none; color: inherit;
+      background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+    }
+    a.card:hover { border-color: #5a6570; }
+    .name { font-weight: 700; font-size: 1.05rem; }
+    .replaces { color: var(--acc); font-size: 0.78rem; }
+    .desc { color: var(--muted); font-size: 0.86rem; }
+    h2 { margin: 28px 0 10px; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+    .foot { margin-top: 28px; color: var(--muted); font-size: 0.8rem; }
+    code { background: #1c222a; padding: 1px 5px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Pulse HEX launch kit</h1>
+    <p class="lede">
+      Open substitutes you can run yourself — no LookIntoHex / LookIntoMaxi / PulseStats account or private indexer.
+      Needs a browser + internet for public RPC / Dex.
+      <br /><br />
+      <strong style="color:var(--fg)">Live:</strong>
+      <a href="https://ihelpmaybe.github.io/pulse-hex-kit/" style="color:var(--acc)">ihelpmaybe.github.io/pulse-hex-kit</a>
+      · local: zip folder → <code>START.cmd</code>
+      · source:
+      <a href="https://github.com/ihelpmaybe/pulse-hex-kit" style="color:var(--acc)">github.com/ihelpmaybe/pulse-hex-kit</a>
+    </p>
+
+    <h2>Launch in browser</h2>
+    <div class="grid">
+      <a class="card" href="tools/hsa/">
+        <span class="name">HEX Stake Analyzer</span>
+        <span class="replaces">≈ portfolio stakes (not LookIntoHex charts)</span>
+        <span class="desc">Paste wallets · pHEX/eHEX · HSI/HTT · one HTML · GPL-3</span>
+      </a>
+      <a class="card" href="tools/hexmob/">
+        <span class="name">HEXmob / TShare</span>
+        <span class="replaces">≈ go.hex.com stake UI</span>
+        <span class="desc">Start / end stakes · mobile-friendly · connect wallet</span>
+      </a>
+      <a class="card" href="tools/delta/">
+        <span class="name">Δ Discounts</span>
+        <span class="replaces">≈ LookIntoMaxi Pulse Δ (free)</span>
+        <span class="desc">Maximus market vs on-chain backing · majors · memes</span>
+      </a>
+      <a class="card" href="tools/hexdaily/">
+        <span class="name">HEX daily stats</span>
+        <span class="replaces">≈ HEXDailyStats / hexstats.today</span>
+        <span class="desc">Charts · glow on outsized moves · history filters · Worker snapshot</span>
+      </a>
+      <a class="card" href="tools/apphex-radar/">
+        <span class="name">appHEX Radar</span>
+        <span class="replaces">apphex.win/radar</span>
+        <span class="desc">Pulse swap feed (live site needs 1× APPHEX)</span>
+      </a>
+      <a class="card" href="tools/apphex-sq/">
+        <span class="name">appHEX SQ blocks</span>
+        <span class="replaces">apphex.win/sq</span>
+        <span class="desc">Pulse block / tx dashboard via public RPC</span>
+      </a>
+    </div>
+
+    <h2>Full appHEX mirror (sibling folder)</h2>
+    <p class="lede">
+      Stake UI · HardHex Ledger/Trezor · charts — mirrored under <code>../apphex.win/</code> (~30 MB JS).
+      Serve with Python and open <code>local-hub.html</code>. Live: <a href="https://apphex.win/!/" style="color:#6dcf8a">apphex.win/!/</a>
+    </p>
+
+    <h2>Desktop (separate mirrors — not inside this zip by default)</h2>
+    <p class="lede" style="margin-bottom:0">
+      LunaGray + exodus Pulsechain-Dashboard portable exes live next to this kit under <code>tts/mirrors/</code>
+      (portfolio / HEX DCA). Run those .exe files directly — no server needed.
+    </p>
+
+    <p class="foot">
+      Licenses: HSA GPL-3 · HEXmob upstream (no SPDX) · Δ Discounts = this vault’s free board · desktop apps keep their own licenses.
+      Not financial advice. Not affiliated with LookInto* or PulseStats.
+    </p>
+  </div>
+</body>
+</html>

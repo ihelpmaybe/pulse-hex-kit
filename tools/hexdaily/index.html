@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HEX daily stats · kit</title>
+  <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
+  <style>
+    :root { color-scheme: dark; --bg:#0b0d10; --fg:#e8eaed; --muted:#9aa0a6; --line:#2a2f36; --panel:#14181e; --acc:#6dcf8a; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 13px/1.35 system-ui, Segoe UI, sans-serif; background: var(--bg); color: var(--fg); }
+    .wrap { padding: 16px 18px 40px; }
+    h1 { margin: 0 0 4px; font-size: 1.2rem; }
+    h2 { margin: 18px 0 8px; font-size: 0.72rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+    .sub { color: var(--muted); margin: 0 0 12px; max-width: 52rem; }
+    .strip { display: flex; flex-wrap: wrap; gap: 8px 16px; color: var(--muted); font-variant-numeric: tabular-nums; margin-bottom: 10px; }
+    .strip b { color: var(--fg); }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; align-items: center; }
+    button, a.btn, select {
+      background: var(--panel); border: 1px solid var(--line); color: var(--fg);
+      border-radius: 8px; padding: 6px 12px; cursor: pointer; font: inherit; text-decoration: none;
+    }
+    button:hover, a.btn:hover { border-color: #5a6570; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .card {
+      background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+      padding: 8px 10px; min-height: 0; text-align: left; width: 100%;
+    }
+    .card.chartable { cursor: pointer; }
+    .card.chartable:hover { border-color: var(--acc); }
+    .card.active { border-color: var(--acc); box-shadow: 0 0 0 1px rgba(109,207,138,0.25); }
+    .card.attn-up {
+      border-color: rgba(109, 207, 138, 0.75);
+      box-shadow: 0 0 16px rgba(109, 207, 138, 0.32), inset 0 0 0 1px rgba(109, 207, 138, 0.18);
+    }
+    .card.attn-down {
+      border-color: rgba(224, 122, 122, 0.8);
+      box-shadow: 0 0 16px rgba(224, 122, 122, 0.34), inset 0 0 0 1px rgba(224, 122, 122, 0.18);
+    }
+    .card.attn-hot {
+      border-color: rgba(232, 184, 90, 0.8);
+      box-shadow: 0 0 16px rgba(232, 184, 90, 0.36), inset 0 0 0 1px rgba(232, 184, 90, 0.2);
+    }
+    .card.attn-strong.attn-up { box-shadow: 0 0 22px rgba(109, 207, 138, 0.5), inset 0 0 0 1px rgba(109, 207, 138, 0.28); }
+    .card.attn-strong.attn-down { box-shadow: 0 0 22px rgba(224, 122, 122, 0.52), inset 0 0 0 1px rgba(224, 122, 122, 0.28); }
+    .card.attn-strong.attn-hot { box-shadow: 0 0 22px rgba(232, 184, 90, 0.55), inset 0 0 0 1px rgba(232, 184, 90, 0.3); }
+    .card.active.attn-up, .card.active.attn-down, .card.active.attn-hot {
+      outline: 1px solid var(--acc);
+      outline-offset: 1px;
+    }
+    .card .k { color: var(--muted); font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    .card .v { font-size: 1.02rem; font-weight: 700; font-variant-numeric: tabular-nums; margin-top: 3px; word-break: break-word; }
+    .card .hint { color: var(--muted); font-size: 0.65rem; margin-top: 2px; }
+    td.attn-up { color: #6dcf8a; text-shadow: 0 0 10px rgba(109, 207, 138, 0.55); }
+    td.attn-down { color: #e07a7a; text-shadow: 0 0 10px rgba(224, 122, 122, 0.55); }
+    td.attn-hot { color: #e8b85a; text-shadow: 0 0 10px rgba(232, 184, 90, 0.5); }
+    .chart-dock {
+      display: none;
+      margin: 8px 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #0e1218;
+      overflow: hidden;
+    }
+    .chart-dock.open {
+      display: block;
+      position: sticky;
+      top: 8px;
+      z-index: 6;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+    }
+    .chart-bar {
+      display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+      padding: 8px 10px; border-bottom: 1px solid var(--line);
+    }
+    .chart-bar .title { font-weight: 700; margin-right: auto; }
+    .chart-bar .meta { color: var(--muted); font-size: 0.75rem; font-variant-numeric: tabular-nums; }
+    .chart-bar button.range-on { border-color: var(--acc); color: var(--acc); }
+    #chartBox { height: 360px; width: 100%; }
+    .scroll { overflow: auto; border: 1px solid var(--line); border-radius: 10px; max-height: 70vh; }
+    table { width: max-content; min-width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 0.78rem; }
+    th, td { text-align: right; padding: 5px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+    th:first-child, td:first-child, th:nth-child(2), td:nth-child(2) { text-align: left; }
+    th { color: var(--muted); font-weight: 600; position: sticky; top: 0; background: var(--panel); z-index: 1; }
+    tbody tr:hover td { background: rgba(109, 207, 138, 0.06); }
+    .err { color: #e07a7a; }
+    .foot { color: var(--muted); font-size: 0.72rem; margin-top: 14px; max-width: 60rem; }
+    .hist-head {
+      display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+      margin: 18px 0 8px;
+    }
+    .hist-head h2 { margin: 0; margin-right: auto; }
+    .hist-head button.on { border-color: var(--acc); color: var(--acc); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>HEX daily stats · Pulse</h1>
+    <p class="sub">Click a card for a chart. Glow = outsized move (green / red / amber penalties). Esc closes chart. Holders/liq may be last rich day.</p>
+    <div class="actions">
+      <a class="btn" href="../../index.html">Kit hub</a>
+      <button type="button" id="btnLocal">Load local</button>
+      <button type="button" id="btnLive">Refresh mirror</button>
+      <label style="color:var(--muted)">Chain
+        <select id="chain">
+          <option value="pulse">Pulse</option>
+          <option value="eth">Ethereum</option>
+        </select>
+      </label>
+    </div>
+    <div class="strip" id="strip">Loading…</div>
+
+    <div class="chart-dock" id="chartDock">
+      <div class="chart-bar">
+        <span class="title" id="chartTitle">Chart</span>
+        <span class="meta" id="chartMeta"></span>
+        <button type="button" data-range="90">90d</button>
+        <button type="button" data-range="365">1y</button>
+        <button type="button" data-range="0">All</button>
+        <button type="button" id="btnCloseChart">Close</button>
+      </div>
+      <div id="chartBox"></div>
+    </div>
+
+    <h2>Spot</h2>
+    <div class="grid" id="gSpot"></div>
+    <h2>Supply · stakes</h2>
+    <div class="grid" id="gSupply"></div>
+    <h2>Yield · T-Shares</h2>
+    <div class="grid" id="gYield"></div>
+    <h2>Liquidity</h2>
+    <div class="grid" id="gLiq"></div>
+    <h2>Adoption</h2>
+    <div class="grid" id="gAdopt"></div>
+    <h2>Other / burn</h2>
+    <div class="grid" id="gOther"></div>
+
+    <div class="hist-head">
+      <h2 id="histTitle">History</h2>
+      <button type="button" data-hist="40" class="on">40d</button>
+      <button type="button" data-hist="90">90d</button>
+      <button type="button" data-hist="365">1y</button>
+      <button type="button" data-hist="0">All</button>
+      <button type="button" id="btnHistRich" title="Only days with holders / liq fields">Rich only</button>
+    </div>
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Day</th><th>Date</th><th>Price</th><th>Δ%</th><th>Mcap</th><th>TVL</th>
+            <th>Circ</th><th>Staked</th><th>Staked%</th><th>Payout</th><th>Penalties</th>
+            <th>$/Tshare</th><th>Tshare rate</th><th>APY</th>
+            <th>Holders</th><th>Stakers</th><th>Liq HEX</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <p class="foot">
+      Charts: TradingView <a href="https://github.com/tradingview/lightweight-charts" style="color:var(--acc)">Lightweight Charts</a> (Apache-2).
+      Feed: togosh HEXDailyStats lineage / hexstats.today / chingching Worker.
+    </p>
+  </div>
+  <script>
+    const MIRRORS = {
+      pulse: "https://hexstats.chingching.xyz/fulldatapulsechain",
+      eth: "https://hexstats.chingching.xyz/fulldataethereum",
+    };
+    const LOCALS = {
+      pulse: "./data/fulldatapulsechain.json",
+      eth: "./data/fulldataethereum.json",
+    };
+    const MIRROR_BURN = "https://hexstats.chingching.xyz/burnvalue";
+    const LOCAL_BURN = "./data/burnvalue.json";
+    const $ = (id) => document.getElementById(id);
+
+    /** @type {any[]} */
+    let ROWS = [];
+    let BURN = null;
+    let chart = null;
+    let series = null;
+    let activeKey = null;
+    let rangeDays = 365;
+    let histDays = 40;
+    let histRichOnly = false;
+    const PREFS_KEY = "hexdaily-kit-prefs";
+
+    function loadPrefs() {
+      try {
+        const p = JSON.parse(localStorage.getItem(PREFS_KEY) || "{}");
+        if (p.rangeDays === 0 || p.rangeDays === 90 || p.rangeDays === 365) rangeDays = p.rangeDays;
+        if (p.histDays === 0 || p.histDays === 40 || p.histDays === 90 || p.histDays === 365)
+          histDays = p.histDays;
+        if (typeof p.histRichOnly === "boolean") histRichOnly = p.histRichOnly;
+        if (p.chain === "eth" || p.chain === "pulse") $("chain").value = p.chain;
+      } catch (_) {}
+    }
+
+    function savePrefs() {
+      try {
+        localStorage.setItem(
+          PREFS_KEY,
+          JSON.stringify({
+            rangeDays,
+            histDays,
+            histRichOnly,
+            chain: chain(),
+          })
+        );
+      } catch (_) {}
+    }
+
+    function isPctSeries(key) {
+      return (
+        /Change|Percent|APY|priceChange|actualAPYRate|stakedHEXPercent|roiMultiplier/i.test(
+          key || ""
+        ) || key === "priceChangePulseX"
+      );
+    }
+
+    function chartMetaLine(key, data) {
+      const range = rangeDays ? rangeDays + "d" : "all";
+      const last = data[data.length - 1].value;
+      const vals = data.map((p) => p.value);
+      const lo = Math.min(...vals);
+      const hi = Math.max(...vals);
+      if (isPctSeries(key)) {
+        return (
+          data.length +
+          " pts · " +
+          range +
+          " · last " +
+          fmt(last, 2) +
+          " · " +
+          fmt(lo, 2) +
+          "…" +
+          fmt(hi, 2)
+        );
+      }
+      const first = data[0].value;
+      const chg = first ? ((last - first) / Math.abs(first)) * 100 : 0;
+      return data.length + " pts · " + range + " · " + fmt(last, 4) + " · " + fmtPct(chg);
+    }
+
+    const LABELS = {
+      pricePulseX: "HEX price (PulseX)",
+      priceChangePulseX: "Price Δ %",
+      marketCap: "Market cap",
+      totalValueLocked: "TVL",
+      pricePulseX_PLS: "PLS",
+      pricePulseX_PLSX: "PLSX",
+      pricePulseX_INC: "INC",
+      priceUV2: "ETH HEX (UV2)",
+      priceUV2UV3: "ETH HEX (UV2/3)",
+      totalHEX: "Total HEX",
+      circulatingHEX: "Circulating",
+      circulatingSupplyChange: "Circ Δ",
+      stakedHEX: "Staked",
+      stakedHEXPercent: "Staked %",
+      stakedSupplyChange: "Staked Δ",
+      stakedHEXGA: "Staked GA",
+      dailyMintedInflationTotal: "Minted inflation",
+      dailyPayoutHEX: "Daily payout",
+      penaltiesHEX: "Penalties",
+      payoutPerTshareHEX: "Payout / T-Share",
+      tshareRateHEX: "T-Share rate HEX",
+      tshareRateUSD: "T-Share rate USD",
+      totalTshares: "Total T-Shares",
+      totalTsharesChange: "T-Shares Δ",
+      actualAPYRate: "APY",
+      averageStakeLength: "Avg stake length yr",
+      tshareMarketCap: "Tshare mcap",
+      liquidityPulseX_HEX: "PulseX HEX liq",
+      liquidityPulseX_PLS: "PulseX PLS liq",
+      liquidityPulseX_EHEX: "PulseX eHEX liq",
+      liquidityUV2_HEXUSDC: "UV2 HEX/USDC",
+      liquidityUV2_USDC: "UV2 USDC",
+      liquidityUV3_HEX: "UV3 HEX",
+      liquidityUV2UV3_USDC: "UV2UV3 USDC",
+      currentHolders: "Current holders",
+      currentHoldersChange: "Holders Δ",
+      numberOfHolders: "Ever holders",
+      currentStakerCount: "Current stakers",
+      currentStakerCountChange: "Stakers Δ",
+      totalStakerCount: "Ever stakers",
+      roiMultiplierFromATL: "ROI from ATL ×",
+      tshareMarketCapToMarketCapRatio: "Tshare/mcap ratio",
+      tshareRateIncrease: "Tshare rate ↑",
+      burnUsd: "Burn addr $",
+    };
+
+    function fmt(n, d = 2) {
+      if (n == null || !Number.isFinite(Number(n))) return "—";
+      return Number(n).toLocaleString(undefined, { maximumFractionDigits: d });
+    }
+    function fmtUsd(n) {
+      if (n == null || !Number.isFinite(Number(n))) return "—";
+      const x = Number(n);
+      if (Math.abs(x) >= 1e9) return "$" + (x / 1e9).toFixed(2) + "B";
+      if (Math.abs(x) >= 1e6) return "$" + (x / 1e6).toFixed(2) + "M";
+      if (Math.abs(x) >= 1e3) return "$" + (x / 1e3).toFixed(1) + "k";
+      if (Math.abs(x) >= 1) return "$" + x.toFixed(4);
+      return "$" + x.toPrecision(3);
+    }
+    function fmtHex(n) {
+      if (n == null || !Number.isFinite(Number(n))) return "—";
+      const x = Number(n);
+      if (Math.abs(x) >= 1e9) return (x / 1e9).toFixed(2) + "B";
+      if (Math.abs(x) >= 1e6) return (x / 1e6).toFixed(2) + "M";
+      if (Math.abs(x) >= 1e3) return (x / 1e3).toFixed(1) + "k";
+      return fmt(x, 2);
+    }
+    function fmtPct(n) {
+      if (n == null || !Number.isFinite(Number(n))) return "—";
+      const sign = Number(n) > 0 ? "+" : "";
+      return sign + Number(n).toFixed(2) + "%";
+    }
+
+    function pick(key) {
+      for (const r of ROWS) {
+        const v = valueAt(r, key);
+        if (v != null && Number.isFinite(Number(v))) {
+          return { v: Number(v), day: r.currentDay, mirror: !!r._mirror };
+        }
+      }
+      return null;
+    }
+
+    function valueAt(r, key) {
+      if (key === "burnUsd") return null;
+      if (key === "pricePulseX") return r.pricePulseX ?? r.priceUV2UV3 ?? r.priceUV2;
+      if (key === "priceChangePulseX")
+        return r.priceChangePulseX ?? r.priceChangeUV2UV3 ?? r.priceChangeUV2;
+      return r[key];
+    }
+
+    function medianAbs(vals) {
+      const a = vals.map(Math.abs).filter((x) => Number.isFinite(x) && x > 0).sort((x, y) => x - y);
+      if (!a.length) return 0;
+      return a[Math.floor(a.length / 2)];
+    }
+
+    function recentAbsMedian(key, n = 60) {
+      const vals = [];
+      for (let i = 0; i < Math.min(ROWS.length, n); i++) {
+        const v = valueAt(ROWS[i], key);
+        if (v != null && Number.isFinite(Number(v))) vals.push(Number(v));
+      }
+      return medianAbs(vals);
+    }
+
+    /** Green / red / amber glow when a move is outsized. */
+    function attnFromPct(pct) {
+      if (pct == null || !Number.isFinite(pct)) return "";
+      const a = Math.abs(pct);
+      if (a < 2) return "";
+      const dir = pct >= 0 ? "attn-up" : "attn-down";
+      return a >= 5 ? dir + " attn-strong" : dir;
+    }
+
+    function attnFromSpike(key, v) {
+      if (v == null || !Number.isFinite(v)) return "";
+      const med = recentAbsMedian(key);
+      if (!med) return "";
+      const ratio = Math.abs(v) / med;
+      if (ratio < 2) return "";
+      if (key === "penaltiesHEX") return ratio >= 3.5 ? "attn-hot attn-strong" : "attn-hot";
+      const dir = v >= 0 ? "attn-up" : "attn-down";
+      return ratio >= 3.5 ? dir + " attn-strong" : dir;
+    }
+
+    function attnForKey(key) {
+      if (!key) return "";
+      if (key === "pricePulseX" || key === "priceChangePulseX") {
+        const ch = pick("priceChangePulseX");
+        return ch ? attnFromPct(ch.v) : "";
+      }
+      const p = pick(key);
+      if (!p) return "";
+      const spike = {
+        stakedSupplyChange: 1,
+        circulatingSupplyChange: 1,
+        totalTsharesChange: 1,
+        currentHoldersChange: 1,
+        currentStakerCountChange: 1,
+        penaltiesHEX: 1,
+        dailyPayoutHEX: 1,
+      };
+      if (spike[key]) return attnFromSpike(key, p.v);
+      return "";
+    }
+
+    function tdAttn(cls, html) {
+      return '<td class="' + (cls || "") + '">' + html + "</td>";
+    }
+
+    function card(label, value, hint, key, attn) {
+      const chartable = key && key !== "_row";
+      const glow = attn || "";
+      return (
+        '<button type="button" class="card' +
+        (chartable ? " chartable" : "") +
+        (activeKey === key ? " active" : "") +
+        (glow ? " " + glow : "") +
+        '"' +
+        (chartable ? ' data-key="' + key + '"' : "") +
+        (glow ? ' title="Notable vs recent days"' : "") +
+        '><div class="k">' +
+        label +
+        (chartable ? " · chart" : "") +
+        '</div><div class="v">' +
+        value +
+        "</div>" +
+        (hint ? '<div class="hint">' + hint + "</div>" : "") +
+        "</button>"
+      );
+    }
+
+    function cardPick(label, key, format) {
+      const p = pick(key);
+      if (!p) return card(label, "—", "", key, "");
+      const hint =
+        p.day !== ROWS[0]?.currentDay ? "as of day " + p.day : p.mirror ? "mirror row" : "";
+      return card(label, format(p.v), hint, key, attnForKey(key));
+    }
+
+    function fill(id, html) {
+      $(id).innerHTML = html;
+      $(id).querySelectorAll(".chartable").forEach((el) => {
+        el.addEventListener("click", () => openChart(el.getAttribute("data-key")));
+      });
+    }
+
+    function unixDay(r) {
+      if (r.date) {
+        const t = Date.parse(r.date);
+        if (Number.isFinite(t)) return Math.floor(t / 1000);
+      }
+      // HEX day 0 ≈ 2019-12-03 UTC
+      const base = Date.UTC(2019, 11, 3) / 1000;
+      return base + Number(r.currentDay || 0) * 86400;
+    }
+
+    function seriesFor(key) {
+      if (key === "burnUsd" && BURN?.series) {
+        return BURN.series
+          .map((s) => {
+            const t = Date.parse(s.date + "T00:00:00Z");
+            if (!Number.isFinite(t) || s.usd == null) return null;
+            return { time: Math.floor(t / 1000), value: Number(s.usd) };
+          })
+          .filter(Boolean)
+          .sort((a, b) => a.time - b.time);
+      }
+      const out = [];
+      // ROWS are newest-first
+      for (let i = ROWS.length - 1; i >= 0; i--) {
+        const r = ROWS[i];
+        const v = valueAt(r, key);
+        if (v == null || !Number.isFinite(Number(v))) continue;
+        out.push({ time: unixDay(r), value: Number(v) });
+      }
+      // dedupe same timestamps keep last
+      const map = new Map();
+      for (const p of out) map.set(p.time, p);
+      return [...map.values()].sort((a, b) => a.time - b.time);
+    }
+
+    function priceFormatFor(data) {
+      const abs = data.map((p) => Math.abs(p.value)).filter((v) => v > 0);
+      const sample = abs.length ? abs[Math.floor(abs.length / 2)] : 1;
+      let precision = 2;
+      let minMove = 0.01;
+      if (sample < 0.000001) {
+        precision = 10;
+        minMove = 1e-10;
+      } else if (sample < 0.0001) {
+        precision = 8;
+        minMove = 1e-8;
+      } else if (sample < 0.01) {
+        precision = 6;
+        minMove = 1e-6;
+      } else if (sample < 1) {
+        precision = 4;
+        minMove = 0.0001;
+      } else if (sample >= 1e6) {
+        precision = 0;
+        minMove = 1;
+      } else if (sample >= 100) {
+        precision = 1;
+        minMove = 0.1;
+      }
+      return { type: "price", precision, minMove };
+    }
+
+    function syncRangeButtons() {
+      document.querySelectorAll("[data-range]").forEach((btn) => {
+        const n = Number(btn.getAttribute("data-range")) || 0;
+        btn.classList.toggle("range-on", n === rangeDays);
+      });
+    }
+
+    function ensureChart() {
+      if (chart) return;
+      if (!window.LightweightCharts) {
+        $("chartMeta").textContent = "Chart lib failed to load (need network once for CDN).";
+        return;
+      }
+      chart = LightweightCharts.createChart($("chartBox"), {
+        layout: {
+          background: { color: "#0e1218" },
+          textColor: "#9aa0a6",
+        },
+        grid: {
+          vertLines: { color: "#1a2030" },
+          horzLines: { color: "#1a2030" },
+        },
+        rightPriceScale: { borderColor: "#2a2f36" },
+        timeScale: { borderColor: "#2a2f36", timeVisible: false },
+        crosshair: {
+          horzLine: { color: "#6dcf8a", labelBackgroundColor: "#1c2a22" },
+          vertLine: { color: "#6dcf8a", labelBackgroundColor: "#1c2a22" },
+        },
+        width: $("chartBox").clientWidth,
+        height: 360,
+      });
+      series = chart.addAreaSeries({
+        lineColor: "#6dcf8a",
+        topColor: "rgba(109,207,138,0.35)",
+        bottomColor: "rgba(109,207,138,0.02)",
+        lineWidth: 2,
+        priceLineVisible: true,
+        lastValueVisible: true,
+      });
+      window.addEventListener("resize", () => {
+        if (chart) chart.applyOptions({ width: $("chartBox").clientWidth });
+      });
+    }
+
+    function applyRange(data) {
+      if (!data.length) return data;
+      if (!rangeDays) return data;
+      const last = data[data.length - 1].time;
+      const min = last - rangeDays * 86400;
+      return data.filter((p) => p.time >= min);
+    }
+
+    function openChart(key, { toggle = true } = {}) {
+      if (!key) return;
+      if (toggle && activeKey === key && $("chartDock").classList.contains("open")) {
+        closeChart();
+        return;
+      }
+      activeKey = key;
+      $("chartDock").classList.add("open");
+      $("chartTitle").textContent = LABELS[key] || key;
+      syncRangeButtons();
+      // Dock must be visible before createChart or width stays 0.
+      ensureChart();
+      if (!series) return;
+      chart.applyOptions({ width: $("chartBox").clientWidth || $("chartDock").clientWidth });
+      const data = applyRange(seriesFor(key));
+      if (!data.length) {
+        $("chartMeta").textContent = "No points for this metric";
+        series.setData([]);
+      } else {
+        series.applyOptions({
+          priceFormat: priceFormatFor(data),
+          lineColor: data[data.length - 1].value >= data[0].value ? "#6dcf8a" : "#e07a7a",
+          topColor:
+            data[data.length - 1].value >= data[0].value
+              ? "rgba(109,207,138,0.35)"
+              : "rgba(224,122,122,0.32)",
+          bottomColor:
+            data[data.length - 1].value >= data[0].value
+              ? "rgba(109,207,138,0.02)"
+              : "rgba(224,122,122,0.02)",
+        });
+        series.setData(data);
+        chart.timeScale().fitContent();
+        $("chartMeta").textContent = chartMetaLine(key, data);
+      }
+      paint(false);
+      $("chartDock").scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
+    function closeChart() {
+      activeKey = null;
+      $("chartDock").classList.remove("open");
+      paint(false);
+    }
+
+    function paint(doTable = true) {
+      if (!ROWS.length) {
+        $("strip").innerHTML = '<span class="err">No rows</span>';
+        return;
+      }
+      const latest = ROWS[0];
+      const rich = ROWS.find((r) => r.currentHolders != null || r.liquidityPulseX_HEX != null);
+      $("strip").innerHTML =
+        "Latest day <b>" +
+        latest.currentDay +
+        "</b> · rows <b>" +
+        ROWS.length +
+        "</b>" +
+        (rich ? " · rich fields thru day <b>" + rich.currentDay + "</b>" : "") +
+        " · click a card for chart · " +
+        new Date().toLocaleTimeString();
+
+      fill(
+        "gSpot",
+        [
+          cardPick("HEX price", "pricePulseX", fmtUsd),
+          cardPick("Price Δ", "priceChangePulseX", fmtPct),
+          cardPick("Market cap", "marketCap", fmtUsd),
+          cardPick("TVL", "totalValueLocked", fmtUsd),
+          cardPick("PLS", "pricePulseX_PLS", fmtUsd),
+          cardPick("PLSX", "pricePulseX_PLSX", fmtUsd),
+          cardPick("INC", "pricePulseX_INC", fmtUsd),
+          cardPick("ETH HEX (UV2)", "priceUV2", fmtUsd),
+        ].join("")
+      );
+
+      fill(
+        "gSupply",
+        [
+          cardPick("Total HEX", "totalHEX", fmtHex),
+          cardPick("Circulating", "circulatingHEX", fmtHex),
+          cardPick("Circ Δ", "circulatingSupplyChange", fmtHex),
+          cardPick("Staked", "stakedHEX", fmtHex),
+          cardPick("Staked %", "stakedHEXPercent", (n) => n.toFixed(2) + "%"),
+          cardPick("Staked Δ", "stakedSupplyChange", fmtHex),
+          cardPick("Staked GA", "stakedHEXGA", fmtHex),
+          cardPick("Minted inflation", "dailyMintedInflationTotal", fmtHex),
+        ].join("")
+      );
+
+      fill(
+        "gYield",
+        [
+          cardPick("Daily payout", "dailyPayoutHEX", fmtHex),
+          cardPick("Penalties", "penaltiesHEX", fmtHex),
+          cardPick("Payout / T-Share", "payoutPerTshareHEX", (n) => fmt(n, 4)),
+          cardPick("T-Share rate HEX", "tshareRateHEX", (n) => fmt(n, 1)),
+          cardPick("T-Share rate USD", "tshareRateUSD", fmtUsd),
+          cardPick("Total T-Shares", "totalTshares", fmtHex),
+          cardPick("T-Shares Δ", "totalTsharesChange", fmt),
+          cardPick("APY", "actualAPYRate", (n) => n.toFixed(2) + "%"),
+          cardPick("Avg stake length yr", "averageStakeLength", (n) => fmt(n, 2)),
+          cardPick("Tshare mcap", "tshareMarketCap", fmtUsd),
+        ].join("")
+      );
+
+      fill(
+        "gLiq",
+        [
+          cardPick("PulseX HEX liq", "liquidityPulseX_HEX", fmtUsd),
+          cardPick("PulseX PLS liq", "liquidityPulseX_PLS", fmtUsd),
+          cardPick("PulseX eHEX liq", "liquidityPulseX_EHEX", fmtUsd),
+          cardPick("UV2 HEX/USDC", "liquidityUV2_HEXUSDC", fmtUsd),
+          cardPick("UV2 USDC", "liquidityUV2_USDC", fmtUsd),
+          cardPick("UV3 HEX", "liquidityUV3_HEX", fmtUsd),
+          cardPick("UV2UV3 USDC", "liquidityUV2UV3_USDC", fmtUsd),
+        ].join("")
+      );
+
+      fill(
+        "gAdopt",
+        [
+          cardPick("Current holders", "currentHolders", (n) => fmt(n, 0)),
+          cardPick("Holders Δ", "currentHoldersChange", (n) => fmt(n, 0)),
+          cardPick("Ever holders", "numberOfHolders", (n) => fmt(n, 0)),
+          cardPick("Current stakers", "currentStakerCount", (n) => fmt(n, 0)),
+          cardPick("Stakers Δ", "currentStakerCountChange", (n) => fmt(n, 0)),
+          cardPick("Ever stakers", "totalStakerCount", (n) => fmt(n, 0)),
+          cardPick("ROI from ATL ×", "roiMultiplierFromATL", (n) => fmt(n, 1)),
+        ].join("")
+      );
+
+      const burnUsd = BURN?.series?.[0]?.usd;
+      fill(
+        "gOther",
+        [
+          card(
+            "Burn addr $",
+            burnUsd != null ? fmtUsd(burnUsd) : "—",
+            BURN?.series?.[0]?.date || "",
+            BURN?.series?.length ? "burnUsd" : null
+          ),
+          cardPick("Tshare/mcap ratio", "tshareMarketCapToMarketCapRatio", (n) => fmt(n, 3)),
+          cardPick("Tshare rate ↑", "tshareRateIncrease", fmt),
+          card("Row type", latest._mirror ? "Worker mirror" : "Upstream backfill", "", null),
+        ].join("")
+      );
+
+      if (!doTable) return;
+
+      let pool = ROWS;
+      if (histRichOnly) {
+        pool = pool.filter(
+          (r) => r.currentHolders != null || r.liquidityPulseX_HEX != null
+        );
+      }
+      const slice = histDays ? pool.slice(0, histDays) : pool;
+      $("histTitle").textContent =
+        "History (" +
+        slice.length +
+        (histDays ? " / " + histDays + "d" : " · all") +
+        (histRichOnly ? " · rich" : "") +
+        ")";
+      $("tbody").innerHTML = slice
+        .map((r) => {
+          const d = r.date ? new Date(r.date).toISOString().slice(0, 10) : "—";
+          const price = r.pricePulseX ?? r.priceUV2UV3 ?? r.priceUV2;
+          const chg = r.priceChangePulseX ?? r.priceChangeUV2UV3 ?? r.priceChangeUV2;
+          const chgN = chg != null ? Number(chg) : null;
+          const penN = r.penaltiesHEX != null ? Number(r.penaltiesHEX) : null;
+          const stakeDn = r.stakedSupplyChange != null ? Number(r.stakedSupplyChange) : null;
+          return (
+            "<tr><td>" +
+            r.currentDay +
+            "</td><td>" +
+            d +
+            "</td>" +
+            tdAttn(attnFromPct(chgN), fmtUsd(price)) +
+            tdAttn(attnFromPct(chgN), fmtPct(chg)) +
+            "<td>" +
+            fmtUsd(r.marketCap) +
+            "</td><td>" +
+            fmtUsd(r.totalValueLocked) +
+            "</td><td>" +
+            fmtHex(r.circulatingHEX) +
+            "</td>" +
+            tdAttn(attnFromSpike("stakedSupplyChange", stakeDn), fmtHex(r.stakedHEX)) +
+            "<td>" +
+            (r.stakedHEXPercent != null ? Number(r.stakedHEXPercent).toFixed(2) + "%" : "—") +
+            "</td><td>" +
+            fmtHex(r.dailyPayoutHEX) +
+            "</td>" +
+            tdAttn(attnFromSpike("penaltiesHEX", penN), fmtHex(r.penaltiesHEX)) +
+            "<td>" +
+            (r.payoutPerTshareHEX != null ? fmt(r.payoutPerTshareHEX, 3) : "—") +
+            "</td><td>" +
+            fmt(r.tshareRateHEX, 1) +
+            "</td><td>" +
+            (r.actualAPYRate != null ? Number(r.actualAPYRate).toFixed(2) + "%" : "—") +
+            "</td><td>" +
+            fmt(r.currentHolders, 0) +
+            "</td><td>" +
+            fmt(r.currentStakerCount, 0) +
+            "</td><td>" +
+            fmtUsd(r.liquidityPulseX_HEX) +
+            "</td></tr>"
+          );
+        })
+        .join("");
+    }
+
+    function syncHistButtons() {
+      document.querySelectorAll("[data-hist]").forEach((btn) => {
+        const n = Number(btn.getAttribute("data-hist")) || 0;
+        btn.classList.toggle("on", n === histDays);
+      });
+      $("btnHistRich").classList.toggle("on", histRichOnly);
+    }
+
+    async function load(feedUrl, burnUrl, label) {
+      $("strip").textContent = "Fetching " + label + "…";
+      closeChart();
+      try {
+        const [feedRes, burnRes] = await Promise.all([
+          fetch(feedUrl),
+          fetch(burnUrl).catch(() => null),
+        ]);
+        if (!feedRes.ok) throw new Error("HTTP " + feedRes.status);
+        ROWS = await feedRes.json();
+        BURN = burnRes && burnRes.ok ? await burnRes.json() : null;
+        paint(true);
+      } catch (e) {
+        $("strip").innerHTML = '<span class="err">' + String(e.message || e) + "</span>";
+      }
+    }
+
+    function chain() {
+      return $("chain").value === "eth" ? "eth" : "pulse";
+    }
+
+    loadPrefs();
+    $("btnLocal").onclick = () => {
+      savePrefs();
+      load(LOCALS[chain()], LOCAL_BURN, "local " + chain());
+    };
+    $("btnLive").onclick = () => {
+      savePrefs();
+      load(MIRRORS[chain()], MIRROR_BURN, "mirror " + chain());
+    };
+    $("chain").onchange = () => {
+      savePrefs();
+      load(LOCALS[chain()], LOCAL_BURN, "local " + chain());
+    };
+    $("btnCloseChart").onclick = closeChart;
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && $("chartDock").classList.contains("open")) closeChart();
+    });
+    document.querySelectorAll("[data-range]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        rangeDays = Number(btn.getAttribute("data-range")) || 0;
+        savePrefs();
+        syncRangeButtons();
+        if (activeKey) openChart(activeKey, { toggle: false });
+      });
+    });
+    syncRangeButtons();
+    document.querySelectorAll("[data-hist]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        histDays = Number(btn.getAttribute("data-hist")) || 0;
+        savePrefs();
+        syncHistButtons();
+        paint(true);
+      });
+    });
+    $("btnHistRich").onclick = () => {
+      histRichOnly = !histRichOnly;
+      savePrefs();
+      syncHistButtons();
+      paint(true);
+    };
+    syncHistButtons();
+
+    load(LOCALS[chain()], LOCAL_BURN, "local " + chain());
+  </script>
+</body>
+</html>

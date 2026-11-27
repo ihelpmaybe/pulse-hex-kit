@@ -1,0 +1,1 @@
+{"service":"hex-stats","chains":{"pulsechain":{"lastDay":2551,"updatedAt":"2026-11-27T00:15:40.960Z"},"ethereum":{"lastDay":2551,"updatedAt":"2026-11-27T02:15:37.778Z"}},"lastDay":2551,"updatedAt":"2026-11-27T00:15:40.960Z","endpoints":["/fulldatapulsechain","/fulldataethereum","/livedata","/pricehistory"]}

@@ -1,0 +1,1433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PulseChain Block Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0b1016;
+      --bg-elev: #121922;
+      --bg-card: #161e28;
+      --line: #243040;
+      --line-soft: #1c2733;
+      --text: #e8eef6;
+      --muted: #8b9bb0;
+      --dim: #64748b;
+      --cyan: #2ee6c7;
+      --cyan-dim: #1aa892;
+      --blue: #4d8dff;
+      --amber: #f0b429;
+      --red: #f07178;
+      --green: #3dd68c;
+      --purple: #b388ff;
+      --pink: #ff7ab6;
+      --shadow: 0 18px 50px rgba(0,0,0,.35);
+      --radius: 14px;
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    html, body { margin: 0; background: var(--bg); color: var(--text); font-family: "IBM Plex Sans", system-ui, sans-serif; }
+    body { min-height: 100vh; background-image:
+      radial-gradient(1200px 500px at 10% -10%, rgba(46,230,199,.08), transparent 50%),
+      radial-gradient(900px 400px at 100% 0%, rgba(77,141,255,.08), transparent 45%); }
+    a { color: var(--cyan); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 22px 20px 64px; }
+    header.app {
+      display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+      margin-bottom: 22px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .logo {
+      width: 40px; height: 40px; border-radius: 12px;
+      background: linear-gradient(135deg, #2ee6c7, #4d8dff);
+      display: grid; place-items: center; font-weight: 700; color: #061016; letter-spacing: -.04em;
+    }
+    .brand h1 { font-size: 18px; margin: 0; letter-spacing: -.02em; }
+    .brand p { margin: 2px 0 0; color: var(--muted); font-size: 12px; }
+    .search { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .search input, .search select, .btn {
+      height: 40px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg-elev); color: var(--text);
+      font: 500 13px "IBM Plex Sans", sans-serif; padding: 0 12px;
+    }
+    .search input { width: min(340px, 70vw); }
+    .btn { cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+    .btn.primary { background: var(--cyan); color: #06201b; border-color: transparent; font-weight: 600; }
+    .btn.primary:hover { filter: brightness(1.05); }
+    .btn:hover { border-color: #3a4d63; }
+    .btn:disabled { opacity: .45; cursor: not-allowed; }
+    .status-pill {
+      font-size: 11px; letter-spacing: .04em; text-transform: uppercase; font-weight: 600;
+      padding: 5px 8px; border-radius: 999px; background: rgba(61,214,140,.12); color: var(--green); border: 1px solid rgba(61,214,140,.25);
+    }
+    .title-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 8px 0 16px; }
+    .title-row h2 { margin: 0; font-size: 28px; letter-spacing: -.03em; }
+    .title-row .sub { color: var(--muted); font-size: 13px; margin-top: 4px; word-break: break-all; }
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,.02), transparent 40%), var(--bg-card);
+      border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow);
+    }
+    .rows { padding: 6px 0; }
+    .row {
+      display: grid; grid-template-columns: 220px 1fr; gap: 16px; padding: 11px 20px;
+      border-bottom: 1px solid var(--line-soft); align-items: start;
+    }
+    .row:last-child { border-bottom: 0; }
+    .row.extra { display: none; }
+    .rows.show-details .row.extra { display: grid; }
+    .meta-toggle {
+      padding: 7px 20px; border-bottom: 1px solid var(--line-soft);
+    }
+    .linkbtn {
+      background: none; border: 0; padding: 0; cursor: pointer;
+      color: var(--dim); font: 500 12px "IBM Plex Sans", sans-serif;
+      display: inline-flex; align-items: center; gap: 5px;
+    }
+    .linkbtn:hover { color: var(--muted); }
+    .linkbtn .chev { font-size: 9px; transition: transform .15s ease; display: inline-block; }
+    .rows.show-details .linkbtn .chev { transform: rotate(180deg); }
+    .details-toggle-wrap {
+      padding: 10px 20px 14px; border-top: 1px solid var(--line-soft);
+    }
+    .btn.ghost {
+      height: 34px; background: transparent; color: var(--cyan); border-color: var(--line);
+      font-size: 12.5px; font-weight: 600;
+    }
+    .btn.ghost:hover { border-color: var(--cyan-dim); background: rgba(46,230,199,.06); }
+    .btn.ghost .chev { display: inline-block; transition: transform .15s ease; font-size: 11px; }
+    .details-toggle-wrap.open .btn.ghost .chev { transform: rotate(180deg); }
+    .k { color: var(--muted); font-size: 13px; display: flex; align-items: center; gap: 8px; }
+    .v { font-size: 13.5px; word-break: break-all; }
+    .mono { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 12.5px; }
+    .hint { color: var(--dim); font-size: 12px; }
+    .bar {
+      height: 7px; border-radius: 99px; background: #1b2530; overflow: hidden; margin-top: 6px; width: min(420px, 100%);
+    }
+    .bar > i { display: block; height: 100%; background: linear-gradient(90deg, var(--cyan), var(--blue)); }
+    .chip { display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 999px; font-size: 12px; background: #1b2633; color: var(--text); }
+    .section { margin-top: 22px; }
+    .section h3 { margin: 0 0 10px; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+    .legend { display: flex; flex-wrap: wrap; gap: 8px 12px; margin-bottom: 12px; }
+    .legend button {
+      background: transparent; border: 0; color: var(--muted); font: 500 12px "IBM Plex Sans", sans-serif;
+      display: inline-flex; align-items: center; gap: 6px; cursor: pointer; padding: 2px 0;
+    }
+    .legend button.active { color: var(--text); }
+    .legend button .sw { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+    .grid {
+      display: grid; grid-template-columns: repeat(auto-fill, 14px); gap: 4px;
+      padding: 16px 18px 18px;
+    }
+    .sq {
+      width: 14px; height: 14px; border-radius: 3px; cursor: pointer; opacity: .95;
+      transition: transform .12s ease, box-shadow .12s ease, opacity .12s ease;
+    }
+    .sq:hover, .sq.sel { transform: scale(1.25); box-shadow: 0 0 0 2px #0b1016, 0 0 0 3px currentColor; z-index: 1; }
+    .sq.dim { opacity: .16; }
+    .tooltip {
+      position: fixed; z-index: 20; pointer-events: none; max-width: 340px;
+      background: #0e1620; border: 1px solid #334155; color: #e8eef6; border-radius: 10px;
+      padding: 10px 12px; font-size: 12px; box-shadow: var(--shadow); display: none;
+    }
+    .tooltip b { display: block; margin-bottom: 4px; }
+    .fail { color: var(--red); font-weight: 600; }
+    .ok { color: var(--green); }
+    .empty, .error, .loading { padding: 28px 20px; color: var(--muted); text-align: center; }
+    .error { color: var(--red); }
+    .notice {
+      margin: 10px 0 0; padding: 10px 14px; border-radius: 10px; font-size: 12.5px;
+      background: rgba(240,180,41,.1); border: 1px solid rgba(240,180,41,.3); color: var(--amber);
+    }
+    .foot { margin-top: 18px; color: var(--dim); font-size: 12px; line-height: 1.5; }
+    #txDetailSection { display: none; }
+    #txDetailSection.open { display: block; }
+    .detail-head {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    }
+    .detail-nav { display: flex; gap: 8px; align-items: center; }
+    .xfer {
+      display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center;
+      padding: 8px 0; border-bottom: 1px dashed var(--line-soft); font-size: 13px;
+    }
+    .xfer:last-child { border-bottom: 0; }
+    .flows { display: flex; flex-wrap: wrap; gap: 8px; }
+    .flow {
+      display: inline-flex; align-items: center; gap: 7px; border-radius: 999px;
+      padding: 4px 11px 4px 9px; font-size: 13px; font-weight: 600; border: 1px solid transparent;
+    }
+    .flow .sym { font-weight: 500; opacity: .85; }
+    .flow.out { background: rgba(240,113,120,.1); border-color: rgba(240,113,120,.28); color: #ffa8ad; }
+    .flow.in  { background: rgba(61,214,140,.1);  border-color: rgba(61,214,140,.28);  color: #6fe3ab; }
+    .flow .arrow { font-size: 11px; opacity: .7; }
+    .input-box {
+      background: #0d141c; border: 1px solid var(--line); border-radius: 10px;
+      padding: 10px 12px; max-height: 180px; overflow: auto;
+      font-family: "IBM Plex Mono", monospace; font-size: 11.5px; line-height: 1.45; word-break: break-all;
+    }
+    .log-item {
+      padding: 10px 0; border-bottom: 1px solid var(--line-soft); font-size: 12.5px;
+    }
+    .log-item:last-child { border-bottom: 0; }
+    .addr { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .copy {
+      width: 22px; height: 22px; padding: 0; border-radius: 6px; cursor: pointer;
+      border: 1px solid var(--line); background: var(--bg-elev); color: var(--muted);
+      font-size: 11px; line-height: 22px; display: inline-grid; place-items: center;
+    }
+    .copy:hover { color: var(--text); border-color: #3a4d63; }
+    .copy.ok { color: var(--green); border-color: rgba(61,214,140,.4); }
+    .ext { color: var(--dim); font-size: 12px; }
+    .ext:hover { color: var(--cyan); text-decoration: none; }
+    .name-tag {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(46,230,199,.1); border: 1px solid rgba(46,230,199,.25);
+      color: var(--cyan); border-radius: 999px; padding: 2px 8px; font-size: 12px; font-weight: 600;
+    }
+
+    /* ---- address view ---- */
+    .atx {
+      display: grid; grid-template-columns: 170px 170px 130px 1fr 150px; gap: 12px;
+      padding: 10px 20px; border-bottom: 1px solid var(--line-soft); align-items: center; font-size: 12.5px;
+    }
+    .atx:last-child { border-bottom: 0; }
+    .atx.head { color: var(--dim); font-size: 11.5px; font-weight: 600; padding-top: 12px; padding-bottom: 8px; }
+    .atx .num { text-align: right; }
+    .atx .chip { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; }
+    .dir {
+      display: inline-block; min-width: 38px; text-align: center; font-size: 11px; font-weight: 600;
+      padding: 2px 6px; border-radius: 6px; margin-right: 6px;
+    }
+    .dir.in   { background: rgba(61,214,140,.12);  color: var(--green); }
+    .dir.out  { background: rgba(240,180,41,.12);  color: var(--amber); }
+    .dir.self { background: rgba(139,155,176,.12); color: var(--muted); }
+    .tok {
+      display: grid; grid-template-columns: 1fr 90px 1fr 190px; gap: 12px;
+      padding: 10px 20px; border-bottom: 1px solid var(--line-soft); align-items: center; font-size: 13px;
+    }
+    .tok .num { text-align: right; }
+    .tok-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    @media (max-width: 720px) {
+      .row { grid-template-columns: 1fr; gap: 4px; padding: 12px 14px; }
+      .title-row h2 { font-size: 22px; }
+      .atx { grid-template-columns: 1fr 1fr; padding: 12px 14px; }
+      .atx.head { display: none; }
+      .atx .num { text-align: left; }
+      .tok { grid-template-columns: 1fr 1fr; padding: 12px 14px; }
+      .tok .num { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="app">
+      <div class="brand">
+        <div class="logo">🧐</div>
+        <div>
+          <h1>PulseChain Blocks</h1>
+          <p><a href="https://apphex.win">apphex.win</a></p>
+        </div>
+      </div>
+      <form class="search" id="searchForm">
+        <select id="rpc" title="RPC endpoint">
+          <option value="https://rpc.pulsechain.com">rpc.pulsechain.com</option>
+          <option value="https://pulsechain-rpc.publicnode.com">publicnode</option>
+          <option value="https://rpc-pulsechain.g4mm4.io">g4mm4</option>
+        </select>
+        <input id="blockInput" placeholder="block, tx hash, address, or latest" value="latest" autocomplete="off" spellcheck="false" />
+        <button class="btn" type="button" id="prevBtn" title="Previous block">←</button>
+        <button class="btn" type="button" id="nextBtn" title="Next block">→</button>
+        <button class="btn" type="button" id="latestBtn" title="Load latest block">Latest</button>
+        <button class="btn primary" type="submit">Load</button>
+      </form>
+    </header>
+
+    <div class="title-row">
+      <div>
+        <h2 id="pageTitle">PulseChain Block</h2>
+        <div class="sub" id="pageSub">Fetching latest block via JSON-RPC…</div>
+      </div>
+      <span class="status-pill" id="statusPill">Live</span>
+    </div>
+
+    <section class="card">
+      <div class="rows" id="overview">
+        <div class="loading">Loading block…</div>
+      </div>
+    </section>
+
+    <section class="section" id="actionsSection">
+      <h3>Transaction actions</h3>
+      <div class="card">
+        <div style="padding:14px 18px 0">
+          <div class="legend" id="legend"></div>
+        </div>
+        <div class="grid" id="grid"></div>
+      </div>
+    </section>
+
+    <section class="section" id="addrTokensSection" hidden>
+      <h3>Token balances <span class="hint" id="addrTokensCount"></span></h3>
+      <div class="card"><div id="addrTokens"></div></div>
+    </section>
+
+    <section class="section" id="addrTxSection" hidden>
+      <h3>Transactions <span class="hint">newest first, from the PulseScan API</span></h3>
+      <div class="card">
+        <div id="addrTxs"></div>
+        <div class="details-toggle-wrap" id="addrMoreWrap" hidden>
+          <button class="btn ghost" type="button" id="addrMore">Load more</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="txDetailSection">
+      <div class="detail-head">
+        <h3>Transaction details <span class="hint" id="txDetailIdx"></span></h3>
+        <div class="detail-nav">
+          <button class="btn" type="button" id="txLink" title="Copy a direct link to this transaction">Copy link</button>
+          <button class="btn" type="button" id="txPrev">← Prev tx</button>
+          <button class="btn" type="button" id="txNext">Next tx →</button>
+          <button class="btn ghost" type="button" id="txClose">Close</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="rows" id="txDetail"></div>
+      </div>
+    </section>
+
+    <p class="foot">
+
+    </p>
+  </div>
+  <div class="tooltip" id="tip"></div>
+
+  <script>
+    const EXPLORER = "https://scan.pulsefusion.io";
+    //const EXPLORER2 = "https://otherscan.pulsechain.box/";
+    const SCAN_API = "https://scan.pulsefusion.io/api/v2" //"https://api.scan.pulsechain.com/api/v2";
+
+    // Only these tokens are shown in the address view's token balances (in this order).
+    const CORE_TOKENS = [
+      { group: "Core",    symbol: "WPLS", name: "Wrapped Pulse",               decimals: 18, address: "0xA1077a294dDE1B09bB078844df40758a5D0f9a27" },
+      { group: "Core",    symbol: "PLSX", name: "PulseX",                      decimals: 18, address: "0x95B303987A60C71504D99Aa1b13B4DA07b0790ab" },
+      { group: "Core",    symbol: "HEX",  name: "HEX",                         decimals: 8,  address: "0x2b591e99afE9f32eAA6214f7B7629768c40Eeb39" },
+      { group: "Core",    symbol: "INC",  name: "Incentive",                   decimals: 18, address: "0x2fa878Ab3F87CC1C9737Fc071108F904c0B0C95d" },
+      { group: "Stable",  symbol: "DAI",  name: "Dai Stablecoin from Ethereum", decimals: 18, address: "0xefD766cCb38EaF1dfd701853BFCe31359239F305" },
+      { group: "Stable",  symbol: "USDC", name: "USD Coin from Ethereum",      decimals: 6,  address: "0x15D38573d2feeb82e7ad5187aB8c1D52810B1f07" },
+      { group: "Stable",  symbol: "USDT", name: "Tether USD from Ethereum",    decimals: 6,  address: "0x0Cb6F5a34ad42ec934882A05265A7d5F59b51A2f" },
+      { group: "Bridged", symbol: "WETH", name: "Wrapped Ether from Ethereum", decimals: 18, address: "0x02DcdD04e3F455D838cd1249292C58f3B79e3C3C" },
+    ];
+    const TRANSFER_TOPIC = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
+    const APPROVAL_TOPIC = "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925";
+    const SWAP_V2_TOPIC = "0xd78ad95fa46c994b6551d0da85fc275fe613ce37657fb8d5e3d130840159d822";
+    const SWAP_V3_TOPIC = "0xc42079f94a6350d7e6235f29174924f928cc2ac818eb64fed8004e115fbcca67";
+
+    const SELECTORS = {
+      "0xa9059cbb": "transfer",
+      "0x23b872dd": "transferFrom",
+      "0x095ea7b3": "approve",
+      "0xd0e30db0": "deposit",
+      "0x2e1a7d4d": "withdraw",
+      "0x38ed1739": "swapExactTokensForTokens",
+      "0x7ff36ab5": "swapExactETHForTokens",
+      "0x18cbafe5": "swapExactTokensForETH",
+      "0x8803dbee": "swapTokensForExactTokens",
+      "0xfb3bdb41": "swapETHForExactTokens",
+      "0x4a25d94a": "swapTokensForExactETH",
+      "0x5c11d795": "swapExactTokensForTokensSupportingFeeOnTransferTokens",
+      "0xb6f9de95": "swapExactETHForTokensSupportingFeeOnTransferTokens",
+      "0x791ac947": "swapExactTokensForETHSupportingFeeOnTransferTokens",
+      "0xe8e33700": "addLiquidity",
+      "0xf305d719": "addLiquidityETH",
+      "0xbaa2abde": "removeLiquidity",
+      "0x02751cec": "removeLiquidityETH",
+      "0x2195995c": "removeLiquidityWithPermit",
+      "0xded9382a": "removeLiquidityETHWithPermit",
+      "0x5ae401dc": "multicall",
+      "0xac9650d8": "multicall",
+      "0x3593564c": "execute",
+      "0x09b81346": "exactInput",
+      "0x414bf389": "exactInputSingle",
+      "0xc04b8d59": "exactInput",
+      "0x04e45aaf": "exactInputSingle",
+      "0x472b43f3": "swapExactTokensForTokens",
+      "0x42712a67": "swapTokensForExactTokens",
+      "0xa694fc3a": "stake",
+      "0x2e17de78": "unstake",
+      "0x3d18b912": "getReward",
+      "0x6a627842": "mint",
+      "0x40c10f19": "mint",
+      "0x42842e0e": "safeTransferFrom",
+      "0xb88d4fde": "safeTransferFrom",
+      "0xa22cb465": "setApprovalForAll",
+    };
+
+    const TYPES = {
+      failed:        { label: "Failed", color: "#f07178" },
+      transfer:      { label: "PLS Transfer", color: "#4d8dff" },
+      tokenTransfer: { label: "Token Transfer", color: "#64748b" },
+      approval:      { label: "Token Approval", color: "#c4a574" },
+      swap:          { label: "Swap", color: "#2ee6c7" },
+      deposit:       { label: "Deposit", color: "#3dd68c" },
+      withdraw:      { label: "Withdraw", color: "#7dd3fc" },
+      liquidity:     { label: "Liquidity", color: "#f0b429" },
+      nft:           { label: "NFT", color: "#b388ff" },
+      create:        { label: "Contract Creation", color: "#ff7ab6" },
+      call:          { label: "Contract Call", color: "#94a3b8" },
+    };
+
+    const state = {
+      mode: "block",          // "block" | "address"
+      navSeq: 0,              // bumps on every navigation so stale fetches are dropped
+      blockNumber: null,
+      blockTs: null,
+      baseFee: 0n,
+      txs: [],
+      filter: null,
+      selected: null,
+      showDetails: false,
+      showInput: false,
+      showLogs: false,
+      showTransfers: false,
+      tokenMeta: {},
+      addrMeta: {},
+      addrMetaPending: {},   // key -> Promise, so parallel lookups share one request
+      skipQueryPush: false,
+      pendingTxHash: null,
+      // address view
+      address: null,
+      addrInfo: null,
+      addrTxItems: [],
+      addrTxNext: null,
+      addrTxShown: 0,        // how many of addrTxItems are on screen
+      addrTokens: null,
+      showAllTokens: false,
+    };
+
+    const $ = (id) => document.getElementById(id);
+
+    function rpcUrl() { return $("rpc").value; }
+
+    async function rpc(method, params) {
+      const res = await fetch(rpcUrl(), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
+      });
+      if (!res.ok) throw new Error("RPC HTTP " + res.status);
+      const body = await res.json();
+      if (body.error) throw new Error(body.error.message || "RPC error");
+      return body.result;
+    }
+
+    const hexToBig = (h) => BigInt(h || "0x0");
+    const toNum = (h) => Number(hexToBig(h));
+    const isHash32 = (s) => /^0x[0-9a-fA-F]{64}$/.test(String(s || "").trim());
+    const isAddr = (s) => /^0x[0-9a-fA-F]{40}$/.test(String(s || "").trim());
+    function formatInt(n) { return Number(n).toLocaleString(); }
+    function shortHash(h, n = 8) {
+      if (!h) return "—";
+      return h.slice(0, 2 + n) + "…" + h.slice(-n);
+    }
+    function formatPLS(wei, digits = 6) {
+      const v = hexToBig(wei);
+      const neg = v < 0n;
+      const abs = neg ? -v : v;
+      const whole = abs / 10n ** 18n;
+      const frac = (abs % 10n ** 18n).toString().padStart(18, "0").slice(0, digits);
+      const s = `${whole.toLocaleString()}.${frac}`.replace(/\.?0+$/, "") || "0";
+      return (neg ? "-" : "") + s + " PLS";
+    }
+    function formatGwei(wei) {
+      const v = Number(hexToBig(wei)) / 1e9;
+      if (v >= 1000) return v.toLocaleString(undefined, { maximumFractionDigits: 2 }) + " Gwei";
+      if (v >= 1) return v.toLocaleString(undefined, { maximumFractionDigits: 4 }) + " Gwei";
+      return v.toLocaleString(undefined, { maximumFractionDigits: 8 }) + " Gwei";
+    }
+    function decodeExtra(hex) {
+      if (!hex || hex === "0x") return "";
+      try {
+        const bytes = hex.slice(2).match(/.{1,2}/g).map((b) => parseInt(b, 16));
+        const str = new TextDecoder().decode(new Uint8Array(bytes));
+        return /[\x20-\x7e]{3,}/.test(str) ? str.replace(/[^\x20-\x7e]/g, " ").trim() : "";
+      } catch { return ""; }
+    }
+    function timeAgo(ts) {
+      const s = Math.max(0, Math.floor(Date.now() / 1000 - ts));
+      if (s < 60) return s + " secs ago";
+      if (s < 3600) return Math.floor(s / 60) + " mins ago";
+      if (s < 86400) return Math.floor(s / 3600) + " hrs ago";
+      return Math.floor(s / 86400) + " days ago";
+    }
+    function utcString(ts) {
+      return new Date(ts * 1000).toUTCString().replace("GMT", "+UTC");
+    }
+    function selectorOf(input) {
+      if (!input || input === "0x" || input.length < 10) return null;
+      return input.slice(0, 10).toLowerCase();
+    }
+    function hasTopic(logs, topic) {
+      return (logs || []).some((l) => (l.topics?.[0] || "").toLowerCase() === topic);
+    }
+    function nftTransfer(logs) {
+      return (logs || []).some((l) =>
+        (l.topics?.[0] || "").toLowerCase() === TRANSFER_TOPIC && (l.topics || []).length === 4
+      );
+    }
+    function classify(tx, rec) {
+      const failed = (rec?.status || "0x1") !== "0x1";
+      const input = tx.input || "0x";
+      const sel = selectorOf(input);
+      const method = sel ? (SELECTORS[sel] || sel) : "Transfer";
+      const value = hexToBig(tx.value);
+      const logs = rec?.logs || [];
+      let kind = "call";
+      if (!tx.to) kind = "create";
+      else if (sel && /swap|exactInput|exactOutput/i.test(SELECTORS[sel] || "") || hasTopic(logs, SWAP_V2_TOPIC) || hasTopic(logs, SWAP_V3_TOPIC)) kind = "swap";
+      else if (sel && /addLiquidity|removeLiquidity/i.test(SELECTORS[sel] || "")) kind = "liquidity";
+      else if (sel && SELECTORS[sel] === "deposit") kind = "deposit";
+      else if (sel && SELECTORS[sel] === "withdraw") kind = "withdraw";
+      else if (sel && SELECTORS[sel] === "approve" || hasTopic(logs, APPROVAL_TOPIC)) kind = "approval";
+      else if (nftTransfer(logs) || (sel && /safeTransferFrom|setApprovalForAll/.test(SELECTORS[sel] || ""))) kind = "nft";
+      else if (sel && /transfer/i.test(SELECTORS[sel] || "") || hasTopic(logs, TRANSFER_TOPIC)) kind = "tokenTransfer";
+      else if ((!sel || input === "0x") && value > 0n) kind = "transfer";
+      else if ((!sel || input === "0x") && value === 0n) kind = "call";
+      if (failed) kind = "failed";
+      return { kind, method, failed };
+    }
+
+    function explorerTx(hash) { return `${EXPLORER}/tx/${hash}`; }
+    function explorerAddr(addr) { return `${EXPLORER}/address/${addr}`; }
+    function explorerBlock(n) { return `${EXPLORER}/block/${n}`; }
+
+    function copyBtn(text) {
+      return `<button type="button" class="copy" data-copy="${escapeHtml(text)}" title="Copy">⧉</button>`;
+    }
+
+    /* ---------------- URL routing ---------------- */
+
+    const ROUTE_KEYS = ["block", "tx", "address"];
+    const LEGACY_KEYS = ["n", "hash", "addr"];
+
+    function queryFromUrl() {
+      const q = new URLSearchParams(location.search);
+      const block = (q.get("block") || q.get("n") || "").trim();
+      const tx = (q.get("tx") || q.get("hash") || "").trim();
+      const address = (q.get("address") || q.get("addr") || "").trim();
+      return { block, tx, address };
+    }
+
+    // Write the route params (?block / ?tx / ?address) — anything not in `next` is removed.
+    function setQuery(next, replace) {
+      const url = new URL(location.href);
+      const p = url.searchParams;
+      const want = (k) => (next[k] == null || next[k] === "" ? null : String(next[k]));
+      const first = !ROUTE_KEYS.some((k) => p.has(k));
+      const legacy = LEGACY_KEYS.some((k) => p.has(k));
+      if (!legacy && ROUTE_KEYS.every((k) => p.get(k) === want(k))) return;
+      for (const k of [...ROUTE_KEYS, ...LEGACY_KEYS]) p.delete(k);
+      for (const k of ROUTE_KEYS) { const v = want(k); if (v != null) p.set(k, v); }
+      const method = (replace || state.skipQueryPush || first) ? "replaceState" : "pushState";
+      history[method](next, "", url);
+    }
+    function syncQuery(block, tx, replace) {
+      setQuery({ block, tx: tx || null }, replace);
+    }
+
+    // Entry point: read ?address= / ?tx= / ?block= and load whatever they point at.
+    async function routeFromUrl() {
+      const { block, tx, address } = queryFromUrl();
+      if (address) {
+        if (!isAddr(address)) throw new Error("Invalid address in URL: " + address);
+        return loadAddress(address, { replace: true });
+      }
+      if (tx) {
+        if (!isHash32(tx)) throw new Error("Invalid tx hash in URL: " + tx);
+        // Already on the right block? Just select it, no refetch.
+        const i = state.mode === "block" ? indexOfHash(tx) : -1;
+        if (i >= 0) { selectTx(i, { replace: true }); return; }
+        return loadHash(tx);
+      }
+      return loadBlock(block || "latest");
+    }
+
+    function indexOfHash(hash) {
+      const h = String(hash || "").toLowerCase();
+      return state.txs.findIndex((t) => (t.tx.hash || "").toLowerCase() === h);
+    }
+
+    // In-app navigation for links marked data-nav (addresses, tx hashes, blocks).
+    function navigate(href) {
+      tip.style.display = "none";
+      history.pushState(null, "", href);
+      state.skipQueryPush = true;
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return routeFromUrl()
+        .catch(showError)
+        .finally(() => { state.skipQueryPush = false; });
+    }
+
+    function setMode(mode) {
+      state.mode = mode;
+      const addrMode = mode === "address";
+      $("actionsSection").hidden = addrMode;
+      $("addrTokensSection").hidden = !addrMode;
+      $("addrTxSection").hidden = !addrMode;
+      $("prevBtn").disabled = addrMode;
+      $("nextBtn").disabled = addrMode;
+      if (addrMode) hideTxDetail();
+      else state.address = null;
+    }
+
+    // A 32-byte hash can be a tx hash or a block hash — try tx first.
+    async function loadHash(h) {
+      $("statusPill").textContent = "Loading";
+      let tx = null;
+      try { tx = await rpc("eth_getTransactionByHash", [h]); } catch {}
+      if (tx) {
+        if (!tx.blockNumber) throw new Error("Transaction " + shortHash(h, 6) + " is still pending (not in a block yet).");
+        return loadBlock(tx.blockNumber, tx.hash);
+      }
+      let blk = null;
+      try { blk = await rpc("eth_getBlockByHash", [h, false]); } catch {}
+      if (blk) return loadBlock(blk.number);
+      throw new Error("No transaction or block found for " + shortHash(h, 8));
+    }
+
+    async function loadBlock(tag, selectHash) {
+      const rawTag = String(tag == null ? "" : tag).trim();
+      if (!selectHash && isAddr(rawTag)) return loadAddress(rawTag);
+      if (!selectHash && isHash32(rawTag)) return loadHash(rawTag);
+
+      const seq = ++state.navSeq;
+      setMode("block");
+      $("grid").innerHTML = "";
+      $("legend").innerHTML = "";
+      $("statusPill").textContent = "Loading";
+      state.filter = null;
+      state.selected = null;
+      state.pendingTxHash = selectHash || null;
+
+      let param = rawTag;
+      if (rawTag === "" || rawTag.toLowerCase() === "latest") param = "latest";
+      else if (/^\d+$/.test(rawTag)) param = "0x" + BigInt(rawTag).toString(16);
+      else if (!rawTag.startsWith("0x")) param = "latest";
+
+      const block = await rpc("eth_getBlockByNumber", [param, true]);
+      if (seq !== state.navSeq) return;
+      if (!block) throw new Error("Block not found");
+      const receipts = await rpc("eth_getBlockReceipts", [block.number]);
+      if (seq !== state.navSeq) return;
+      render(block, receipts || []);
+    }
+
+    /* ---------------- address view ---------------- */
+
+    async function loadAddress(addr, opts) {
+      const { replace = false } = opts || {};
+      addr = String(addr || "").trim();
+      if (!isAddr(addr)) throw new Error("Invalid address: " + addr);
+
+      const seq = ++state.navSeq;
+      setMode("address");
+      state.address = addr;
+      state.addrInfo = null;
+      state.addrTxItems = [];
+      state.addrTxNext = null;
+      state.addrTxShown = 0;
+      state.addrTokens = null;
+      state.showAllTokens = false;
+      state.blockNumber = null;
+      state.blockTs = null;
+      state.txs = [];
+      state.filter = null;
+      state.selected = null;
+      state.pendingTxHash = null;
+
+      $("grid").innerHTML = "";
+      $("legend").innerHTML = "";
+      $("statusPill").textContent = "Loading";
+      $("pageTitle").textContent = "Address " + shortHash(addr, 6);
+      $("pageSub").innerHTML = `<span class="mono">${escapeHtml(addr)}</span>`;
+      $("blockInput").value = addr;
+      document.title = "PulseChain Address " + shortHash(addr, 6);
+      setQuery({ address: addr }, replace);
+
+      $("overview").className = "rows";
+      $("overview").innerHTML = `<div class="loading">Loading address…</div>`;
+      $("addrTokens").innerHTML = `<div class="loading">Loading token balances…</div>`;
+      $("addrTokensCount").textContent = "";
+      $("addrTxs").innerHTML = `<div class="empty"><button type="button" class="btn ghost" id="loadTxsBtn">Load transactions</button></div>`;
+      $("addrMoreWrap").hidden = true;
+      $("addrMore").textContent = "Load more";
+
+      // Lists come from the explorer API and load independently of the RPC overview.
+      loadAddrTokens(seq);
+      ensureAddrMeta(addr).then(() => { if (seq === state.navSeq) renderAddrOverview(); });
+
+      const [bal, nonce, code] = await Promise.all([
+        rpc("eth_getBalance", [addr, "latest"]),
+        rpc("eth_getTransactionCount", [addr, "latest"]),
+        rpc("eth_getCode", [addr, "latest"]).catch(() => "0x"),
+      ]);
+      if (seq !== state.navSeq) return;
+      state.addrInfo = {
+        balance: hexToBig(bal),
+        nonce: toNum(nonce),
+        isContract: !!code && code !== "0x" && code !== "0x0",
+      };
+      renderAddrOverview();
+      $("statusPill").textContent = "Address";
+    }
+
+    function renderAddrOverview() {
+      const a = state.address;
+      const info = state.addrInfo;
+      if (!a || !info) return;
+      const meta = state.addrMeta[a.toLowerCase()] || {};
+      const isContract = info.isContract || meta.isContract;
+      if (meta.name) $("pageTitle").textContent = meta.name;
+      $("overview").className = "rows";
+      $("overview").innerHTML = [
+        row("Address", `<span class="addr"><span class="mono">${escapeHtml(a)}</span>${copyBtn(a)} · <a href="${explorerAddr(a)}" target="_blank" rel="noopener">PulseScan</a></span>`),
+        meta.name ? row("Name", `<span class="name-tag">${escapeHtml(meta.name)}${meta.isVerified ? " ✓" : ""}</span>`) : "",
+        row("Type", isContract
+          ? `Contract${meta.isVerified ? ` <span class="ok">· verified source</span>` : ""}`
+          : "Wallet (EOA)"),
+        row("PLS Balance", `<b>${formatPLS(info.balance)}</b>`),
+        row(isContract ? "Nonce" : "Transactions sent", formatInt(info.nonce)),
+      ].join("");
+    }
+
+    const TX_PAGE = 10;
+
+    async function loadAddrTxs(seq, more) {
+      const a = state.address;
+      const btn = $("addrMore");
+      let url = `${SCAN_API}/addresses/${a}/transactions`;
+      if (more && state.addrTxNext) {
+        const params = Object.entries(state.addrTxNext).filter(([, v]) => v != null);
+        url += "?" + new URLSearchParams(params).toString();
+      }
+      btn.disabled = true;
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("PulseScan API returned HTTP " + res.status);
+        const d = await res.json();
+        if (seq !== state.navSeq) return;
+        state.addrTxItems = (more ? state.addrTxItems : []).concat(d.items || []);
+        state.addrTxNext = d.next_page_params || null;
+        btn.textContent = "Load more";
+        for (const it of d.items || []) { seedAddrMeta(it.from); seedAddrMeta(it.to); seedAddrMeta(it.created_contract); }
+        showMoreAddrTxs(seq, more ? state.addrTxShown : 0);
+      } catch (err) {
+        if (seq !== state.navSeq) return;
+        if (more) btn.textContent = "Retry loading more";
+        else $("addrTxs").innerHTML = `<div class="error">Couldn't load transactions: ${escapeHtml(err.message || String(err))}
+          <div style="margin-top:10px"><button type="button" class="btn ghost" id="loadTxsBtn">Try again</button></div></div>`;
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    // Put TX_PAGE more rows on screen (from `from`), then resolve names for just those rows.
+    function showMoreAddrTxs(seq, from) {
+      state.addrTxShown = Math.min(from + TX_PAGE, state.addrTxItems.length);
+      renderAddrTxs();
+      const lookups = state.addrTxItems.slice(from, state.addrTxShown)
+        .flatMap((it) => [it.from, it.to, it.created_contract])
+        .filter((o) => o?.hash)
+        .map((o) => o.hash);
+      resolveAddrNames(lookups, () => { if (seq === state.navSeq) renderAddrTxs(); });
+    }
+
+    function renderAddrTxs() {
+      const a = (state.address || "").toLowerCase();
+      const items = state.addrTxItems.slice(0, state.addrTxShown);
+      if (!items.length) {
+        $("addrTxs").innerHTML = `<div class="empty">No transactions found for this address.</div>`;
+        $("addrMoreWrap").hidden = true;
+        return;
+      }
+      const head = `<div class="atx head"><div>Transaction</div><div>Method</div><div>Time</div><div>Counterparty</div><div class="num">Value</div></div>`;
+      $("addrTxs").innerHTML = head + items.map((it) => {
+        const hash = it.hash || "";
+        const from = it.from?.hash || "";
+        const to = it.to?.hash || it.created_contract?.hash || "";
+        const f = from.toLowerCase();
+        const t = to.toLowerCase();
+        const dir = f === a && t === a ? "self" : f === a ? "out" : "in";
+        const other = dir === "in" ? from : to;
+        const blockN = it.block_number ?? it.block ?? null;
+        const ts = it.timestamp ? Math.floor(Date.parse(it.timestamp) / 1000) : null;
+        const failed = it.status === "error";
+        const rawSel = it.raw_input && it.raw_input !== "0x" ? it.raw_input.slice(0, 10) : null;
+        const method = it.method || (rawSel ? (SELECTORS[rawSel] || rawSel) : (it.to ? "Transfer" : "Contract creation"));
+        const dirLabel = { in: "In", out: "Out", self: "Self" }[dir];
+        let value = "0 PLS";
+        try { value = formatPLS(it.value || "0", 4); } catch {}
+        return `<div class="atx">
+          <div><a class="mono" href="?tx=${escapeHtml(hash)}" data-nav>${shortHash(hash, 6)}</a>${failed ? ` <span class="fail" title="Failed">✕</span>` : ""}</div>
+          <div><span class="chip" title="${escapeHtml(method)}">${escapeHtml(method)}</span></div>
+          <div title="${ts ? escapeHtml(utcString(ts)) + (blockN != null ? " · block " + formatInt(blockN) : "") : ""}">${ts ? timeAgo(ts) : "—"}</div>
+          <div><span class="dir ${dir}">${dirLabel}</span>${dir === "self" ? "" : (other ? addrLink(other, shortHash(other, 4)) : "—")}</div>
+          <div class="num mono">${value}</div>
+        </div>`;
+      }).join("");
+      $("addrMoreWrap").hidden = !(state.addrTxItems.length > state.addrTxShown || state.addrTxNext);
+    }
+
+    // Balances for the CORE_TOKENS whitelist, read straight from the RPC (balanceOf).
+    async function loadAddrTokens(seq) {
+      const owner = state.address;
+      const data = "0x70a08231" + owner.slice(2).toLowerCase().padStart(64, "0");
+      const results = await Promise.all(CORE_TOKENS.map(async (tk) => {
+        try {
+          const raw = await rpc("eth_call", [{ to: tk.address, data }, "latest"]);
+          return { ...tk, value: hexToBig(raw && raw !== "0x" ? raw : "0x0"), error: false };
+        } catch {
+          return { ...tk, value: 0n, error: true };
+        }
+      }));
+      if (seq !== state.navSeq) return;
+      if (results.every((r) => r.error)) {
+        $("addrTokens").innerHTML = `<div class="error">Couldn't read token balances from the RPC. Try another endpoint.</div>`;
+        $("addrTokensCount").textContent = "";
+        return;
+      }
+      state.addrTokens = results.filter((r) => r.value > 0n);
+      renderAddrTokens();
+    }
+
+    function renderAddrTokens() {
+      const list = state.addrTokens || [];
+      $("addrTokensCount").textContent = "core, stables & bridged ETH";
+      if (!list.length) {
+        $("addrTokens").innerHTML = `<div class="empty">No core tokens, stablecoins or bridged ETH held.</div>`;
+        return;
+      }
+      $("addrTokens").innerHTML = list.map((tk) => `<div class="tok">
+          <div class="tok-name" title="${escapeHtml(tk.name)}"><b>${escapeHtml(tk.symbol)}</b> <span class="hint">${escapeHtml(tk.name)}</span></div>
+          <div><span class="chip">${tk.group}</span></div>
+          <div class="num mono">${formatUnits(tk.value, tk.decimals)}</div>
+          <div>${addrLink(tk.address, shortHash(tk.address, 4))}</div>
+        </div>`).join("");
+    }
+
+    /* ---------------- rendering ---------------- */
+
+    function render(block, receipts) {
+      const number = toNum(block.number);
+      state.blockNumber = number;
+      state.blockTs = toNum(block.timestamp);
+      state.baseFee = hexToBig(block.baseFeePerGas || "0x0");
+      state.selected = null;
+      state.showInput = false;
+      state.showLogs = false;
+      state.showTransfers = false;
+      hideTxDetail();
+      document.title = `PulseChain Block #${number}`;
+      $("pageTitle").textContent = `PulseChain Block #${formatInt(number)}`;
+      const ts = toNum(block.timestamp);
+      $("pageSub").innerHTML = `${utcString(ts)} · ${timeAgo(ts)}`;
+      $("statusPill").textContent = "Finalized";
+      $("blockInput").value = String(number);
+
+      const txs = block.transactions || [];
+      const recByHash = Object.fromEntries((receipts || []).map((r) => [r.transactionHash, r]));
+      const baseFee = hexToBig(block.baseFeePerGas || "0x0");
+      const gasUsed = hexToBig(block.gasUsed);
+      const gasLimit = hexToBig(block.gasLimit);
+      const util = gasLimit === 0n ? 0 : Number(gasUsed * 10000n / gasLimit) / 100;
+      const burnt = baseFee * gasUsed;
+      let priority = 0n;
+      const classified = txs.map((tx) => {
+        const rec = recByHash[tx.hash] || {};
+        const info = classify(tx, rec);
+        const used = hexToBig(rec.gasUsed || "0x0");
+        const price = hexToBig(rec.effectiveGasPrice || tx.gasPrice || "0x0");
+        const fee = used * price;
+        if (price > baseFee) priority += (price - baseFee) * used;
+        return { tx, rec, ...info, fee, used, price };
+      });
+      state.txs = classified;
+
+      const pending = state.pendingTxHash;
+      const pendingIdx = pending ? indexOfHash(pending) : -1;
+      state.pendingTxHash = null;
+
+      // Keep ?tx= in the URL while we are about to select it; otherwise drop it.
+      syncQuery(number, pendingIdx >= 0 ? classified[pendingIdx].tx.hash : null, true);
+
+      const failedN = classified.filter((t) => t.failed).length;
+
+      $("overview").className = "rows";
+      $("overview").innerHTML = [
+        row("Transactions", `<b>${formatInt(txs.length)}</b> transactions${failedN ? ` · <span class="fail">${failedN} failed</span>` : ""}`),
+        row("Gas Used", `${formatInt(gasUsed)} <span class="hint">(${util.toFixed(2)}%)</span>
+          <div class="bar"><i style="width:${Math.min(util,100)}%"></i></div>`),
+      ].join("");
+
+      renderGrid();
+
+      if (pending) {
+        if (pendingIdx >= 0) selectTx(pendingIdx, { replace: true });
+        else $("overview").insertAdjacentHTML("beforeend",
+          `<div class="notice">Transaction ${escapeHtml(shortHash(pending, 8))} is not in this block.</div>`);
+      }
+    }
+
+    function row(k, v, extra = false) {
+      return `<div class="row${extra ? " extra" : ""}"><div class="k">${k}</div><div class="v">${v}</div></div>`;
+    }
+    // Address label opens the in-app address view; ↗ opens PulseScan.
+    function addrLink(a, label) {
+      if (!a) return "—";
+      const safe = escapeHtml(a);
+      const meta = state.addrMeta[a.toLowerCase()] || {};
+      const name = meta.name
+        ? `<span class="name-tag">${escapeHtml(meta.name)}${meta.isVerified ? " ✓" : ""}</span>`
+        : "";
+      return `<span class="addr">${name}<a class="mono" href="?address=${safe}" data-nav title="Open address">${label ? escapeHtml(label) : safe}</a>${copyBtn(a)}<a class="ext" href="${explorerAddr(safe)}" target="_blank" rel="noopener" title="Open on PulseScan">↗</a></span>`;
+    }
+    // Fetch JSON with a few retries on rate limits / server errors.
+    async function fetchJsonRetry(url, tries = 3) {
+      for (let i = 0; i < tries; i++) {
+        try {
+          const res = await fetch(url);
+          if (res.ok) return await res.json();
+          if (res.status === 404) return null;            // unknown address: not an error
+          if (res.status !== 429 && res.status < 500) throw new Error("HTTP " + res.status);
+        } catch (err) {
+          if (i === tries - 1) throw err;
+        }
+        await new Promise((r) => setTimeout(r, 600 * (i + 1)));
+      }
+      throw new Error("PulseScan API unavailable");
+    }
+
+    // Every place Blockscout / PulseScan can put a human-readable name.
+    function metaNameFrom(d) {
+      if (!d) return "";
+      const impl = Array.isArray(d.implementations) ? d.implementations.find((x) => x && x.name) : null;
+      const tags = Array.isArray(d.metadata?.tags) ? d.metadata.tags : [];
+      const nameTag = tags.find((t) => t && t.tagType === "name") || tags.find((t) => t && t.name);
+      const pubTag = Array.isArray(d.public_tags) ? d.public_tags.find((t) => t && (t.display_name || t.label)) : null;
+      return d.name
+        || nameTag?.name
+        || pubTag?.display_name || pubTag?.label
+        || impl?.name
+        || d.implementation_name
+        || d.token?.name || d.token?.symbol
+        || d.ens_domain_name
+        || "";
+    }
+    // Record what an explorer address object (e.g. tx.from / tx.to in API lists) already tells us.
+    function seedAddrMeta(obj) {
+      if (!obj || !obj.hash) return;
+      const key = obj.hash.toLowerCase();
+      const cur = state.addrMeta[key];
+      if (cur?.final) return;
+      const name = metaNameFrom(obj);
+      // Only a name is trusted here: PulseScan's tx-list objects report is_contract:false
+      // even for contracts, so anything unnamed is left for ensureAddrMeta to decide.
+      if (name) {
+        state.addrMeta[key] = { name, isContract: !!obj.is_contract, isVerified: !!obj.is_verified, final: true };
+      }
+    }
+
+    // Does this address still need a lookup? (Unknown, or an earlier attempt failed.)
+    function needsAddrMeta(addr) {
+      if (!addr) return false;
+      const m = state.addrMeta[addr.toLowerCase()];
+      return !m || (!m.name && !m.final);
+    }
+
+    // Resolve a name tag. Only definitive answers are cached as final; failures can be retried later.
+    function ensureAddrMeta(addr) {
+      if (!addr) return Promise.resolve(null);
+      const key = addr.toLowerCase();
+      if (!needsAddrMeta(key)) return Promise.resolve(state.addrMeta[key]);
+      if (state.addrMetaPending[key]) return state.addrMetaPending[key];
+
+      const p = (async () => {
+        const meta = { name: "", isContract: false, isVerified: false, final: false };
+        try {
+          const d = await fetchJsonRetry(SCAN_API + "/addresses/" + key);
+          if (d) {
+            meta.name = metaNameFrom(d);
+            meta.isContract = !!d.is_contract;
+            meta.isVerified = !!d.is_verified;
+          }
+          meta.final = true;                              // explorer answered definitively
+        } catch {}                                        // API down: fall back to RPC, retry later
+        if (!meta.name) {
+          try {
+            const code = await rpc("eth_getCode", [key, "latest"]);
+            if (code && code !== "0x" && code !== "0x0") {
+              meta.isContract = true;
+              const raw = await rpc("eth_call", [{ to: key, data: "0x06fdde03" }, "latest"]).catch(() => "0x");
+              const nm = decodeAbiString(raw);
+              if (nm) { meta.name = nm; meta.final = true; }
+            } else if (code) {
+              meta.final = true;                          // plain wallet: nothing more to find
+            }
+          } catch {}
+        }
+        // Don't let a failed lookup overwrite a good answer that arrived another way.
+        const cur = state.addrMeta[key];
+        if (!cur || !cur.name) state.addrMeta[key] = meta;
+        return state.addrMeta[key];
+      })().finally(() => { delete state.addrMetaPending[key]; });
+
+      state.addrMetaPending[key] = p;
+      return p;
+    }
+
+    // Resolve many names with limited concurrency; call onChange once if any new name appeared.
+    async function resolveAddrNames(addrs, onChange) {
+      const queue = [...new Set(addrs.filter(Boolean).map((a) => a.toLowerCase()))].filter(needsAddrMeta);
+      if (!queue.length) return;
+      let changed = false;
+      const worker = async () => {
+        while (queue.length) {
+          const m = await ensureAddrMeta(queue.shift());
+          if (m?.name) changed = true;
+        }
+      };
+      await Promise.all(Array.from({ length: Math.min(4, queue.length) }, worker));
+      if (changed) onChange();
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;" }[c]));
+    }
+
+    function renderGrid() {
+      const counts = {};
+      for (const t of state.txs) counts[t.kind] = (counts[t.kind] || 0) + 1;
+      const order = Object.keys(TYPES);
+      $("legend").innerHTML = order.filter((k) => counts[k]).map((k) => {
+        const on = !state.filter || state.filter === k;
+        return `<button data-kind="${k}" class="${on && state.filter ? "active" : ""}">
+          <span class="sw" style="background:${TYPES[k].color}"></span>${TYPES[k].label} (${counts[k]})
+        </button>`;
+      }).join("") || `<span class="hint">No transactions to classify.</span>`;
+
+      $("legend").onclick = (e) => {
+        const btn = e.target.closest("button[data-kind]");
+        if (!btn) return;
+        const k = btn.dataset.kind;
+        state.filter = state.filter === k ? null : k;
+        renderGrid();
+      };
+
+      $("grid").innerHTML = state.txs.map((t, i) => {
+        const dim = state.filter && t.kind !== state.filter;
+        const sel = state.selected === i;
+        return `<div class="sq ${dim ? "dim" : ""} ${sel ? "sel" : ""}" data-i="${i}"
+          style="background:${TYPES[t.kind].color};color:${TYPES[t.kind].color}"></div>`;
+      }).join("");
+    }
+
+    const tip = $("tip");
+    $("grid").addEventListener("mousemove", (e) => {
+      const sq = e.target.closest(".sq");
+      if (!sq) { tip.style.display = "none"; return; }
+      const t = state.txs[+sq.dataset.i];
+      if (!t) return;
+      tip.style.display = "block";
+      tip.style.left = Math.min(e.clientX + 14, innerWidth - 360) + "px";
+      tip.style.top = Math.min(e.clientY + 14, innerHeight - 140) + "px";
+      tip.innerHTML = `<b>${TYPES[t.kind].label}${t.failed && t.kind !== "failed" ? " · Failed" : ""}</b>
+        <div style="margin-top:6px;color:#94a3b8">From</div> <div class="mono">${t.tx.from}</div>
+        <div style="margin-top:6px;color:#94a3b8">To</div> <div class="mono">${t.tx.to}</div>
+        <div style="margin-top:6px;color:#94a3b8">${t.method} · ${formatPLS(t.tx.value)}</div>`;
+    });
+    $("grid").addEventListener("mouseleave", () => { tip.style.display = "none"; });
+    $("grid").addEventListener("click", (e) => {
+      const sq = e.target.closest(".sq");
+      if (!sq) return;
+      selectTx(+sq.dataset.i);
+    });
+
+    function topicAddress(topic) {
+      if (!topic || topic.length < 42) return null;
+      return "0x" + topic.slice(-40);
+    }
+    function formatUnits(weiHexOrBig, decimals) {
+      const v = typeof weiHexOrBig === "bigint" ? weiHexOrBig : hexToBig(weiHexOrBig || "0x0");
+      const d = Number(decimals);
+      if (!Number.isFinite(d) || d < 0 || d > 36) return v.toString();
+      const base = 10n ** BigInt(d);
+      const whole = v / base;
+      const frac = (v % base).toString().padStart(d, "0").replace(/0+$/, "");
+      return frac ? `${whole.toLocaleString()}.${frac.slice(0, 8)}` : whole.toLocaleString();
+    }
+    function decodeAbiString(hex) {
+      if (!hex || hex === "0x") return "";
+      const h = hex.slice(2);
+      try {
+        if (h.length <= 64) {
+          const bytes = h.match(/.{2}/g) || [];
+          const cut = bytes.findIndex((b) => b === "00");
+          const arr = (cut === -1 ? bytes : bytes.slice(0, cut)).map((b) => parseInt(b, 16));
+          return new TextDecoder().decode(new Uint8Array(arr)).replace(/[^\x20-\x7e]/g, "").trim();
+        }
+        const offset = Number(BigInt("0x" + h.slice(0, 64)));
+        const start = offset * 2;
+        const len = Number(BigInt("0x" + h.slice(start, start + 64)));
+        const data = h.slice(start + 64, start + 64 + len * 2);
+        const arr = (data.match(/.{2}/g) || []).map((b) => parseInt(b, 16));
+        return new TextDecoder().decode(new Uint8Array(arr)).replace(/[^\x20-\x7e]/g, "").trim();
+      } catch { return ""; }
+    }
+    function parseEvents(logs) {
+      const out = [];
+      for (const log of logs || []) {
+        const t0 = (log.topics?.[0] || "").toLowerCase();
+        if (t0 === TRANSFER_TOPIC) {
+          const nft = (log.topics || []).length >= 4;
+          out.push({
+            type: nft ? "nft" : "transfer",
+            token: log.address,
+            from: topicAddress(log.topics[1]),
+            to: topicAddress(log.topics[2]),
+            amount: nft ? hexToBig(log.topics[3]) : hexToBig(log.data),
+            tokenId: nft ? hexToBig(log.topics[3]) : null,
+          });
+        } else if (t0 === APPROVAL_TOPIC) {
+          out.push({
+            type: "approval",
+            token: log.address,
+            from: topicAddress(log.topics[1]),
+            to: topicAddress(log.topics[2]),
+            amount: hexToBig(log.data || log.topics[3] || "0x0"),
+          });
+        } else if (t0 === SWAP_V2_TOPIC || t0 === SWAP_V3_TOPIC) {
+          out.push({ type: "swap", token: log.address });
+        }
+      }
+      return out;
+    }
+    // Net what the tx sender gave away vs. received, per token.
+    // Round-trips (in and out of the same token) cancel out.
+    function netFlow(events, owner, plsValue) {
+      const o = (owner || "").toLowerCase();
+      const bal = new Map();       // token -> signed bigint (+ received)
+      const nftIn = new Map();     // token -> Set(tokenId)
+      const nftOut = new Map();
+      const bump = (m, k, id) => { if (!m.has(k)) m.set(k, new Set()); m.get(k).add(id); };
+
+      for (const ev of events) {
+        const f = (ev.from || "").toLowerCase();
+        const t = (ev.to || "").toLowerCase();
+        const k = (ev.token || "").toLowerCase();
+        if (!k || (f !== o && t !== o) || f === t) continue;
+        if (ev.type === "transfer") {
+          if (f === o) bal.set(k, (bal.get(k) || 0n) - ev.amount);
+          else bal.set(k, (bal.get(k) || 0n) + ev.amount);
+        } else if (ev.type === "nft") {
+          const id = String(ev.tokenId);
+          if (f === o) bump(nftOut, k, id); else bump(nftIn, k, id);
+        }
+      }
+      // Cancel NFTs that went out and came back
+      for (const [k, outIds] of nftOut) {
+        const inIds = nftIn.get(k);
+        if (!inIds) continue;
+        for (const id of [...outIds]) {
+          if (inIds.has(id)) { outIds.delete(id); inIds.delete(id); }
+        }
+      }
+
+      const gave = [], got = [];
+      if (plsValue > 0n) gave.push({ native: true, amount: plsValue });
+      for (const [token, v] of bal) {
+        if (v > 0n) got.push({ token, amount: v });
+        else if (v < 0n) gave.push({ token, amount: -v });
+      }
+      for (const [token, ids] of nftOut) if (ids.size) gave.push({ token, ids: [...ids] });
+      for (const [token, ids] of nftIn) if (ids.size) got.push({ token, ids: [...ids] });
+      return { gave, got };
+    }
+
+    function flowHtml(list, dir) {
+      if (!list.length) return `<span class="hint">—</span>`;
+      const arrow = dir === "out" ? "↑" : "↓";
+      return `<div class="flows">` + list.map((it) => {
+        if (it.native) {
+          return `<span class="flow ${dir}"><span class="arrow">${arrow}</span>${formatPLS("0x" + it.amount.toString(16))}</span>`;
+        }
+        const meta = state.tokenMeta[it.token] || { symbol: shortHash(it.token, 4), decimals: 18 };
+        const body = it.ids
+          ? `${it.ids.length > 1 ? it.ids.length + " NFTs" : "#" + it.ids[0]} <span class="sym">${escapeHtml(meta.symbol)}</span>`
+          : `${formatUnits(it.amount, meta.decimals)} <span class="sym">${escapeHtml(meta.symbol)}</span>`;
+        return `<span class="flow ${dir}" title="${escapeHtml(it.token)}"><span class="arrow">${arrow}</span>${body}</span>`;
+      }).join("") + `</div>`;
+    }
+
+    async function ensureTokenMeta(addresses) {
+      const need = [...new Set(addresses.filter(Boolean).map((a) => a.toLowerCase()))]
+        .filter((a) => !state.tokenMeta[a]);
+      await Promise.all(need.map(async (addr) => {
+        const meta = { symbol: shortHash(addr, 4), decimals: 18, name: "" };
+        try {
+          const [sym, dec] = await Promise.all([
+            rpc("eth_call", [{ to: addr, data: "0x95d89b41" }, "latest"]),
+            rpc("eth_call", [{ to: addr, data: "0x313ce567" }, "latest"]),
+          ]);
+          const s = decodeAbiString(sym);
+          if (s) meta.symbol = s;
+          if (dec && dec !== "0x") meta.decimals = Number(hexToBig(dec));
+        } catch {}
+        state.tokenMeta[addr] = meta;
+      }));
+    }
+    function hideTxDetail() {
+      $("txDetailSection").classList.remove("open");
+    }
+    function applyMetaToggle() {
+      $("txDetail").classList.toggle("show-details", state.showDetails);
+    }
+    function selectTx(i, opts) {
+      if (i == null || i < 0 || i >= state.txs.length) return;
+      const { replace = false, scroll = "detail" } = opts || {};
+      state.selected = i;
+      state.showInput = false;
+      state.showLogs = false;
+      state.showTransfers = false;
+      syncQuery(state.blockNumber, state.txs[i].tx.hash, replace);
+      renderGrid();
+      renderTxDetail();
+      $("txDetailSection").classList.add("open");
+      if (scroll === "grid") {
+        $("actionsSection").scrollIntoView({ block: "start", behavior: "smooth" });
+      } else if (scroll === "detail") {
+        $("txDetailSection").scrollIntoView({ block: "nearest", behavior: "smooth" });
+      }
+    }
+    function renderTxDetail() {
+      const i = state.selected;
+      const t = state.txs[i];
+      if (!t) { hideTxDetail(); return; }
+      $("txDetailIdx").textContent = `${i + 1} / ${state.txs.length}`;
+      $("txPrev").style.display = i <= 0 ? "none" : "";
+      $("txNext").style.display = i >= state.txs.length - 1 ? "none" : "";
+      const tx = t.tx;
+      const rec = t.rec || {};
+      const gasLimit = hexToBig(tx.gas);
+      const gasUsed = t.used;
+      const pct = gasLimit === 0n ? 0 : Number(gasUsed * 10000n / gasLimit) / 100;
+      const typeHex = tx.type || rec.type || "0x0";
+      const typeLabel = ({ "0x0": "Legacy", "0x1": "Access List (EIP-2930)", "0x2": "Dynamic Fee (EIP-1559)", "0x3": "Blob (EIP-4844)" })[typeHex] || typeHex;
+      const events = parseEvents(rec.logs);
+      const flow = netFlow(events, tx.from, hexToBig(tx.value));
+      const nonce = tx.nonce != null ? toNum(tx.nonce) : "—";
+      const index = rec.transactionIndex != null ? toNum(rec.transactionIndex) : i;
+      const created = rec.contractAddress;
+      const input = tx.input || "0x";
+
+      const eventHtml = events.length
+        ? `<div id="tokenMoves">${events.map((ev) => {
+            if (ev.type === "swap") {
+              return `<div class="xfer"><span class="chip">Swap</span> pool ${addrLink(ev.token, shortHash(ev.token, 6))}</div>`;
+            }
+            const meta = state.tokenMeta[(ev.token || "").toLowerCase()] || { symbol: shortHash(ev.token, 4), decimals: 18 };
+            const amt = ev.type === "nft"
+              ? `Token ID ${ev.tokenId}`
+              : ev.amount === (2n ** 256n - 1n)
+                ? "Unlimited"
+                : `${formatUnits(ev.amount, meta.decimals)} ${escapeHtml(meta.symbol)}`;
+            const label = ev.type === "approval" ? "Approve" : ev.type === "nft" ? "NFT" : "Transfer";
+            return `<div class="xfer">
+              <span class="chip">${label}</span>
+              ${addrLink(ev.from, shortHash(ev.from, 4))}
+              <span class="hint">→</span>
+              ${addrLink(ev.to, shortHash(ev.to, 4))}
+              <b>${amt}</b>
+              <span class="hint">${addrLink(ev.token, shortHash(ev.token, 4))}</span>
+            </div>`;
+          }).join("")}</div>`
+        : `<span class="hint">No Transfer / Approval / Swap events</span>`;
+
+      const logs = rec.logs || [];
+      const logsHtml = logs.length
+        ? logs.map((log, li) => `<div class="log-item">
+            <div><b>Log ${li}</b> · ${addrLink(log.address, shortHash(log.address, 6))}</div>
+            ${(log.topics || []).map((tp, ti) => `<div class="mono hint">${ti}: ${tp}</div>`).join("")}
+            ${log.data && log.data !== "0x" ? `<div class="mono hint">data: ${shortHash(log.data, 18)}</div>` : ""}
+          </div>`).join("")
+        : `<span class="hint">No logs</span>`;
+
+      $("txDetail").innerHTML = [
+        row("Transaction Hash", `<span class="addr"><span class="mono">${tx.hash}</span>${copyBtn(tx.hash)} · <a href="${explorerTx(tx.hash)}" target="_blank">PulseScan</a></span>`),
+        row("Status", t.failed ? `<span class="fail">Failed</span>` : `<span class="ok">Success</span>`),
+        row("Action", `<span class="chip" style="background:${TYPES[t.kind].color}22;border:1px solid ${TYPES[t.kind].color}55">${TYPES[t.kind].label}</span> · ${escapeHtml(t.method)}`),
+        row("From", addrLink(tx.from)),
+        row("To", created
+          ? `Contract created: ${addrLink(created)}`
+          : (tx.to ? addrLink(tx.to) : "—")),
+        row("Value", hexToBig(tx.value) === 0n ? "0 PLS" : formatPLS(tx.value)),
+        `<div class="meta-toggle"><button type="button" class="linkbtn" id="toggleMeta">gas, nonce &amp; type<span class="chev">▾</span></button></div>`,
+        row("Transaction Fee", `${formatPLS("0x" + t.fee.toString(16), 8)} <span class="hint">gas used × effective gas price</span>`, true),
+        row("Gas Price", `${formatGwei("0x" + t.price.toString(16))} effective`, true),
+        tx.maxFeePerGas ? row("Max Fee / Priority", `${formatGwei(tx.maxFeePerGas)} / ${formatGwei(tx.maxPriorityFeePerGas || "0x0")}`, true) : "",
+        row("Gas Limit & Usage", `${formatInt(gasUsed)} / ${formatInt(gasLimit)} <span class="hint">(${pct.toFixed(2)}%)</span>
+          <div class="bar"><i style="width:${Math.min(pct,100)}%"></i></div>`, true),
+        row("Nonce", String(nonce), true),
+        row("Index in block", String(index), true),
+        row("Type", `${typeLabel} (${typeHex})`, true),
+        row("Tokens gave", flowHtml(flow.gave, "out")),
+        row("Tokens got", flowHtml(flow.got, "in")),
+        row("Token movements", `<div class="hint">${events.length} event${events.length === 1 ? "" : "s"}
+          ${events.length ? ` · <a href="#" id="toggleTransfers">${state.showTransfers ? "Hide" : "Show"} details</a>` : ""}</div>
+          ${state.showTransfers && events.length ? `<div style="margin-top:6px">${eventHtml}</div>` : ""}`),
+        row("Input Data",`<div class="hint">${input === "0x" ? "Empty (simple transfer)" : `${escapeHtml(t.method)} · ${(input.length - 2) / 2} bytes`}
+          ${input !== "0x" ? ` · <a href="#" id="toggleInput">${state.showInput ? "Hide" : "Show"} hex</a>` : ""}</div>
+          ${state.showInput && input !== "0x" ? `<div class="input-box">${input}</div>` : ""}`),
+        row("Logs", `<div class="hint">${logs.length} log${logs.length === 1 ? "" : "s"}
+          ${logs.length ? ` · <a href="#" id="toggleLogs">${state.showLogs ? "Hide" : "Show"} raw logs</a>` : ""}</div>
+          ${state.showLogs ? logsHtml : ""}`),
+      ].join("");
+
+      applyMetaToggle();
+
+      $("toggleInput")?.addEventListener("click", (e) => {
+        e.preventDefault();
+        state.showInput = !state.showInput;
+        renderTxDetail();
+      });
+      $("toggleLogs")?.addEventListener("click", (e) => {
+        e.preventDefault();
+        state.showLogs = !state.showLogs;
+        renderTxDetail();
+      });
+      $("toggleTransfers")?.addEventListener("click", (e) => {
+        e.preventDefault();
+        state.showTransfers = !state.showTransfers;
+        renderTxDetail();
+      });
+      $("toggleMeta")?.addEventListener("click", () => {
+        state.showDetails = !state.showDetails;
+        applyMetaToggle();
+      });
+
+      const tokenAddrs = events.map((ev) => ev.token).filter(Boolean);
+      const missing = [...new Set(tokenAddrs.filter(Boolean).map((a) => a.toLowerCase()))]
+        .filter((a) => !state.tokenMeta[a]);
+      if (missing.length) {
+        ensureTokenMeta(missing).then(() => {
+          if (state.selected === i) renderTxDetail();
+        });
+      }
+      resolveAddrNames([tx.from, created || tx.to], () => {
+        if (state.selected === i) renderTxDetail();
+      });
+    }
+
+    function showError(err) {
+      $("overview").className = "rows";
+      $("overview").innerHTML = `<div class="error">${escapeHtml(err.message || String(err))}</div>`;
+      $("statusPill").textContent = "Error";
+    }
+
+    document.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-copy]");
+      if (!btn) return;
+      e.preventDefault();
+      const text = btn.getAttribute("data-copy");
+      navigator.clipboard.writeText(text).then(() => {
+        btn.classList.add("ok");
+        btn.textContent = "✓";
+        setTimeout(() => {
+          btn.classList.remove("ok");
+          btn.textContent = "⧉";
+        }, 900);
+      }).catch(() => {});
+    });
+
+    // In-app links (address / tx / block). Modifier-clicks still open a new tab.
+    document.addEventListener("click", (e) => {
+      const a = e.target.closest("a[data-nav]");
+      if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      e.preventDefault();
+      navigate(a.getAttribute("href"));
+    });
+
+    $("searchForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      loadBlock($("blockInput").value).catch(showError);
+    });
+    window.addEventListener("popstate", () => {
+      state.skipQueryPush = true;
+      const { tx } = queryFromUrl();
+      if (!tx && state.selected != null) {
+        state.selected = null;
+        hideTxDetail();
+        renderGrid();
+      }
+      routeFromUrl()
+        .catch(showError)
+        .finally(() => { state.skipQueryPush = false; });
+    });
+    $("prevBtn").addEventListener("click", () => {
+      if (state.blockNumber == null) return;
+      loadBlock(String(state.blockNumber - 1)).catch(showError);
+    });
+    $("nextBtn").addEventListener("click", () => {
+      if (state.blockNumber == null) return;
+      loadBlock(String(state.blockNumber + 1)).catch(showError);
+    });
+    $("latestBtn").addEventListener("click", () => {
+      loadBlock("latest").catch(showError);
+    });
+    // Transactions load only when asked for.
+    $("addrTxs").addEventListener("click", (e) => {
+      const btn = e.target.closest("#loadTxsBtn");
+      if (!btn || state.mode !== "address") return;
+      $("addrTxs").innerHTML = `<div class="loading">Loading transactions…</div>`;
+      loadAddrTxs(state.navSeq, false);
+    });
+    $("addrMore").addEventListener("click", () => {
+      if (state.mode !== "address") return;
+      // The API returns 50 per page; show those 10 at a time before fetching the next page.
+      if (state.addrTxItems.length > state.addrTxShown) showMoreAddrTxs(state.navSeq, state.addrTxShown);
+      else if (state.addrTxNext) loadAddrTxs(state.navSeq, true);
+    });
+    $("txPrev").addEventListener("click", () => {
+      if (state.selected == null || state.selected <= 0) return;
+      selectTx(state.selected - 1, { replace: true, scroll: "grid" });
+    });
+    $("txNext").addEventListener("click", () => {
+      if (state.selected == null || state.selected >= state.txs.length - 1) return;
+      selectTx(state.selected + 1, { replace: true, scroll: "grid" });
+    });
+    $("txClose").addEventListener("click", () => {
+      state.selected = null;
+      hideTxDetail();
+      renderGrid();
+      syncQuery(state.blockNumber, null, true);
+    });
+    $("txLink").addEventListener("click", () => {
+      const t = state.txs[state.selected];
+      if (!t) return;
+      const url = new URL(location.href);
+      url.searchParams.set("block", String(state.blockNumber));
+      url.searchParams.set("tx", t.tx.hash);
+      const btn = $("txLink");
+      navigator.clipboard.writeText(url.toString()).then(() => {
+        btn.textContent = "Copied ✓";
+        setTimeout(() => { btn.textContent = "Copy link"; }, 1200);
+      }).catch(() => {});
+    });
+
+    routeFromUrl().catch(showError);
+  </script>
+</body>
+</html>

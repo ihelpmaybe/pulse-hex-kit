@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="operator">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Δ Discounts</title>
+  <link rel="stylesheet" href="./kit.css" />
+  <style>
+    .wrap {
+      padding: 16px 20px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+    header.top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px 20px;
+    }
+    header.top h1 { margin: 0; font-size: 1.25rem; }
+    header.top .sub { margin: 0; color: var(--muted); font-size: 0.85rem; max-width: 56rem; }
+    .strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 16px;
+      align-items: center;
+      font-size: 0.8rem;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+    .strip b { color: var(--fg); font-weight: 600; }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .sec-h {
+      margin: 4px 0 0;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 10px;
+      align-items: stretch;
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-height: 0;
+    }
+    .card .head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+    }
+    .card .sym { font-weight: 700; font-size: 1rem; }
+    .card .yrs { color: var(--muted); font-size: 0.72rem; text-align: right; }
+    .delta {
+      font-size: 1.45rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+    }
+    .delta.disc { color: #6dcf8a; }
+    .delta.prem { color: #e07a7a; }
+    .delta.flat { color: var(--muted); }
+    .one {
+      font-size: 0.78rem;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+    .one b { color: var(--fg); font-weight: 600; }
+    details.more {
+      margin-top: 2px;
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+    details.more summary {
+      cursor: pointer;
+      user-select: none;
+      color: var(--muted);
+    }
+    details.more[open] summary { margin-bottom: 4px; }
+    details.more dl {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 2px 10px;
+      margin: 0;
+      font-variant-numeric: tabular-nums;
+    }
+    details.more dt { margin: 0; }
+    details.more dd { margin: 0; text-align: right; color: var(--fg); }
+    .err { color: #e07a7a; font-size: 0.85rem; }
+    button.kit {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      color: var(--fg);
+      border-radius: 8px;
+      padding: 6px 12px;
+      cursor: pointer;
+      font: inherit;
+      font-size: 0.85rem;
+    }
+    button.kit:hover { border-color: var(--fg); }
+    button.kit:disabled { opacity: 0.5; cursor: wait; }
+    .foot {
+      font-size: 0.75rem;
+      color: var(--muted);
+      max-width: 60rem;
+      margin: 0;
+    }
+    .card.rotate .pair { font-weight: 700; font-size: 0.95rem; }
+    .card.rotate .pct {
+      font-size: 1.25rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      color: var(--muted);
+    }
+    .card.rotate .pct.live { color: var(--fg); }
+    .card.rotate .meta {
+      font-size: 0.72rem;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+    .skel-tag {
+      font-size: 0.65rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 1px 7px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <div>
+        <h1>Δ Discounts · Pulse</h1>
+        <p class="sub">Maximus backing Δ · majors parity/peg · RH pump.tires memes. Free chain + DexScreener — no LookIntoMaxi.</p>
+      </div>
+      <div class="actions">
+        <a class="kit" href="../../index.html" style="text-decoration:none;display:inline-flex;align-items:center">Kit hub</a>
+        <button type="button" class="kit" id="btnRefresh">Refresh</button>
+      </div>
+    </header>
+    <div class="strip" id="strip">Loading…</div>
+
+    <h2 class="sec-h">Maximus · vs stake backing</h2>
+    <div class="grid" id="gridMaxi"></div>
+
+    <h2 class="sec-h">Majors · parity / peg / spot</h2>
+    <div class="grid" id="gridMajors"></div>
+
+    <h2 class="sec-h">RH pump.tires · first-wave memes</h2>
+    <div class="grid" id="gridMemes"></div>
+
+    <h2 class="sec-h">Rotates · A → B <span class="skel-tag">watch</span></h2>
+    <div class="grid" id="gridRotates"></div>
+
+    <p class="foot" id="note">
+      Maximus Δ = market HEX/token vs on-chain backing (stake principal + daily payout share so far) ÷ supply. TEAM half-BPB skim not subtracted — backing runs a bit rich. eHEX Δ vs pHEX USD. DAI = bridged vs $1. Memes = USD + 24h only. Rotates = % move since you first opened this board (local), not a trade log.
+    </p>
+  </div>
+  <script src="./delta-discounts-app.js"></script>
+</body>
+</html>

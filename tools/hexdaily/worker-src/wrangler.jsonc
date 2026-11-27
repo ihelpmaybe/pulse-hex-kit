@@ -1,0 +1,55 @@
+{
+  // hex-stats — independent Cloudflare Worker mirror of the
+  // hexstats.today HEX daily-stats feed (https://github.com/togosh/hexdailystats).
+  // Backfills history from an existing feed, then keeps itself fresh by
+  // collecting each new day directly from public subgraphs.
+  "name": "hex-stats",
+  "main": "src/index.js",
+  "compatibility_date": "2026-06-01",
+
+  // Branded URL (remove or change this block when deploying your own fork —
+  // without it the Worker just serves on its *.workers.dev URL).
+  "routes": [
+    { "pattern": "hexstats.chingching.xyz", "custom_domain": true }
+  ],
+  // Keep the *.workers.dev URL serving too (fallback if the domain moves).
+  "workers_dev": true,
+
+  // Workers KV — enabled by default on every account (unlike R2, which needs
+  // dashboard activation), so anyone can fork + deploy a mirror with zero setup.
+  // Create your own namespace with `npx wrangler kv namespace create FEED` and
+  // paste its id here.
+  "kv_namespaces": [
+    {
+      "binding": "FEED",
+      "id": "c5270685fac047ba8e117f7fc9f5af37"
+    }
+  ],
+
+  "triggers": {
+    // Hourly at :15 — no-ops cheaply unless a new HEX day has completed.
+    // (Upstream records land shortly after 00:00 UTC.)
+    "crons": ["15 * * * *"]
+  },
+
+  "observability": {
+    "enabled": true
+  },
+
+  // Per-IP rate limiting (Workers Rate Limiting API — free). 120 requests per
+  // 60s per client IP is far above any honest consumer (the feeds change once
+  // a day) but stops runaway polling loops from burning the free tier.
+  "unsafe": {
+    "bindings": [
+      {
+        "name": "RATE_LIMITER",
+        "type": "ratelimit",
+        "namespace_id": "1001",
+        "simple": { "limit": 120, "period": 60 }
+      }
+    ]
+  }
+
+  // Secrets (set with `wrangler secret put`):
+  //   ADMIN_TOKEN — bearer token guarding /admin/* endpoints (backfill, collect-now)
+}

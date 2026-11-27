@@ -1,0 +1,1798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AppHex Radar — PulseChain Swaps</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080C18;
+    --surface: #0F1525;
+    --surface2: #161D33;
+    --border: #1E2A45;
+    --accent: #00FFB2;
+    --accent-dim: rgba(0,255,178,0.12);
+    --accent-glow: rgba(0,255,178,0.35);
+    --red: #FF4D6D;
+    --red-dim: rgba(255,77,109,0.12);
+    --purple: #7C5CFF;
+    --purple-dim: rgba(124,92,255,0.15);
+    --text: #E2E8F4;
+    --text-dim: whitesmoke;
+    --text-faint: gray;
+    --pulse: #FF6B35;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Space Grotesk', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* GRID BACKGROUND */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,255,178,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,255,178,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── GATE SCREEN ── */
+  #gate {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg);
+  }
+
+  .gate-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 48px 52px;
+    max-width: 480px;
+    width: 90%;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .gate-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%; transform: translateX(-50%);
+    width: 200px; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  }
+
+  .gate-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 28px;
+  }
+
+  .radar-icon {
+    width: 48px; height: 48px;
+    position: relative;
+  }
+
+  .radar-icon svg {
+    width: 100%; height: 100%;
+  }
+
+  .gate-title {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: var(--text);
+  }
+
+  .gate-title span { color: var(--accent); }
+
+  .gate-sub {
+    font-size: 14px;
+    color: var(--text-dim);
+    margin-top: 10px;
+    line-height: 1.6;
+  }
+
+  .token-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--accent-dim);
+    border: 1px solid rgba(0,255,178,0.25);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent);
+    margin: 20px auto 28px;
+  }
+
+  .btn-connect {
+    width: 100%;
+    padding: 16px;
+    background: var(--accent);
+    color: #080C18;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.3px;
+  }
+
+  .btn-connect:hover {
+    background: #00e6a0;
+    box-shadow: 0 0 24px var(--accent-glow);
+    transform: translateY(-1px);
+  }
+
+  .btn-connect:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  #gate-status {
+    margin-top: 16px;
+    font-size: 13px;
+    color: var(--text-dim);
+    min-height: 20px;
+  }
+
+  #gate-status.error { color: var(--red); }
+  #gate-status.success { color: var(--accent); }
+
+  .gate-disclaimer {
+    margin-top: 24px;
+    font-size: 11px;
+    color: var(--text-faint);
+    line-height: 1.5;
+  }
+
+  /* ── APP SHELL ── */
+  #app {
+    display: none;
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(8,12,24,0.85);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .header-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+
+  .header-logo span { color: var(--accent); }
+
+  .header-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+
+  /*@keyframes pulse-dot {
+    0%, 100% { opacity: 1; box-shadow: 0 0 8px var(--accent); }
+    50% { opacity: 0.5; box-shadow: 0 0 3px var(--accent); }
+  }*/
+
+@keyframes pulse-dot {
+  0% {
+    opacity: 1;
+    box-shadow: 0 0 8px var(--accent);
+  }
+  50% {
+    opacity: 0.5;
+    box-shadow: 0 0 3px var(--accent);
+  }
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 8px var(--accent);
+  }
+}
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .wallet-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-dim);
+  }
+
+  .wallet-pill-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  #swap-count-badge {
+    font-size: 12px;
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* LAYOUT */
+  .layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 0;
+    height: calc(100vh - 60px);
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    border-right: 1px solid var(--border);
+    padding: 24px 20px;
+    overflow-y: auto;
+    background: var(--surface);
+  }
+
+  .sidebar-section {
+    margin-bottom: 28px;
+  }
+
+  .sidebar-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 12px;
+  }
+
+  .filter-row {
+    margin-bottom: 12px;
+  }
+
+  .filter-row label {
+    display: block;
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+
+  .filter-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .filter-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-dim);
+  }
+
+  /* Toggle */
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+  }
+
+  .toggle-label {
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+
+  .toggle {
+    position: relative;
+    width: 40px;
+    height: 22px;
+  }
+
+  .toggle input { display: none; }
+
+  .toggle-track {
+    position: absolute;
+    inset: 0;
+    background: var(--border);
+    border-radius: 11px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .toggle-track::after {
+    content: '';
+    position: absolute;
+    top: 3px; left: 3px;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--text-dim);
+    transition: transform 0.2s, background 0.2s;
+  }
+
+  .toggle input:checked + .toggle-track {
+    background: var(--accent-dim);
+    border: 1px solid rgba(0,255,178,0.4);
+  }
+
+  .toggle input:checked + .toggle-track::after {
+    transform: translateX(18px);
+    background: var(--accent);
+  }
+
+  /* Core tokens list */
+  .core-tokens {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .core-token-chip {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 5px;
+    background: var(--purple-dim);
+    border: 1px solid rgba(124,92,255,0.2);
+    color: var(--purple);
+  }
+
+  /* Stats */
+  .stat-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+  }
+
+  .stat-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: var(--text-faint);
+    margin-top: 2px;
+  }
+
+  .sidebar-label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .sidebar-label-row .sidebar-label {
+    margin-bottom: 0;
+  }
+
+  .stat-reset-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 3px 8px;
+    color: var(--text-faint);
+    font-size: 10px;
+    font-family: 'Space Grotesk', sans-serif;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .stat-reset-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* MAIN */
+  .main {
+    overflow-y: auto;
+    background: var(--bg);
+  }
+
+  .main-header {
+    position: sticky;
+    top: 0;
+    background: rgba(8,12,24,0.9);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 10;
+  }
+
+  .main-header-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-dim);
+  }
+
+  #pause-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 6px 12px;
+    color: var(--text-dim);
+    font-size: 12px;
+    font-family: 'Space Grotesk', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  #pause-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  #pause-btn.paused {
+    background: var(--accent-dim);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+   #clear-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 6px 12px;
+    margin-left: 1.5ch;
+    color: var(--text-dim);
+    font-size: 12px;
+    font-family: 'Space Grotesk', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  #clear-btn:hover {
+    border-color: var(--red);
+    color: var(--red);
+  }
+
+  #clear-btn.paused {
+    background: var(--accent-dim);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* SWAP LIST */
+  #swap-list {
+    padding: 12px 16px;
+  }
+
+  .swap-row {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 4px 6px;
+    margin-bottom: 8px;
+    display: grid;
+    grid-template-columns: auto 1fr 1fr auto 1fr auto;
+    align-items: center;
+    gap: 10px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s;
+    animation: row-enter 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  @keyframes row-enter {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .swap-row.new {
+    border-color: rgba(0,255,178,0.3);
+  }
+
+  .swap-row.new::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0,255,178,0.06), transparent);
+    animation: scan 0.8s ease-out forwards;
+  }
+
+  @keyframes scan {
+    to { left: 150%; }
+  }
+
+  .swap-token {
+    display: block;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .token-symbol {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .token-amount {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .token-usd {
+    font-size: 11px;
+    color: var(--text-faint);
+  }
+
+  .swap-arrow {
+    color: var(--text-faint);
+    font-size: 16px;
+    user-select: none;
+  }
+
+  .swap-meta {
+    display: block;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+  }
+
+  .swap-time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: steelblue;
+    margin: 8px;
+  }
+
+  .swap-link {
+    width: 14ch;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: var(--text-faint);
+    text-decoration: none;
+    opacity: 0.7;
+    transition: opacity 0.15s;
+  }
+
+  .swap-wallet {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: var(--text);
+    text-decoration: none;
+    opacity: 0.7;
+    transition: opacity 0.15s;
+  }
+
+  .swap-link:hover { opacity: 1; }
+
+  .swap-value-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 2px 7px;
+    border-radius: 5px;
+    font-weight: 500;
+  }
+
+  .swap-value-badge.bigkk {
+    background: khaki;
+    color: purple;
+    border: 1px solid purple;
+  }
+
+
+  .swap-value-badge.bigk {
+    background: darkslategrey;
+    color: cyan;
+    border: 1px solid aqua;
+  }
+
+  .swap-value-badge.big {
+    background: var(--accent-dim);
+    color: var(--accent);
+    border: 1px solid rgba(0,255,178,0.2);
+  }
+
+  .swap-value-badge.mid {
+    background: var(--purple-dim);
+    color: var(--purple);
+    border: 1px solid rgba(124,92,255,0.2);
+  }
+
+  .swap-value-badge.small {
+    background: var(--surface2);
+    color: var(--text-faint);
+    border: 1px solid var(--border);
+  }
+
+  /* DEX badge */
+  .dex-badge {
+    font-size: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-faint);
+    background: var(--surface2);
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+  }
+
+  /* EMPTY STATE */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 20px;
+    color: var(--text-faint);
+    text-align: center;
+    gap: 12px;
+  }
+
+  .empty-state svg {
+    opacity: 0.3;
+  }
+
+  .empty-state p { font-size: 13px; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-faint); }
+
+  /* RADAR pulse animation on gate */
+  @keyframes radar-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  @keyframes radar-ping {
+    0% { opacity: 0.8; transform: scale(0.3); }
+    100% { opacity: 0; transform: scale(1); }
+  }
+
+  .network-indicator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-faint);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .network-indicator-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--pulse);
+  }
+
+  /* Mobile responsive */
+  @media (max-width: 768px) {
+    .layout {
+      grid-template-columns: 1fr;
+      height: auto;
+    }
+
+    /* Hide sidebar by default on mobile — shown via burger menu */
+    .sidebar {
+      position: fixed;
+      top: 60px;
+      left: 0;
+      bottom: 0;
+      width: 260px;
+      z-index: 200;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      box-shadow: 4px 0 30px rgba(0, 0, 0, 0.45);
+      transform: translateX(-100%);
+      transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+      overflow-y: auto;
+      /* remove bottom border from old stacked layout */
+      border-bottom: none;
+    }
+
+    .sidebar.open {
+      transform: translateX(0);
+    }
+
+    /* Dim main content + disable interaction while drawer is open (nice mobile UX) */
+    .sidebar.open + .main {
+      filter: brightness(0.7);
+      transition: filter 0.2s ease;
+      pointer-events: none;
+    }
+
+    /* Keep swap rows nicely stacked on narrow screens */
+    .swap-row {
+      grid-template-columns: 1fr auto 1fr;
+      grid-template-rows: auto auto;
+    }
+    .swap-meta {
+      grid-column: 1 / -1;
+      flex-direction: row;
+      justify-content: space-between;
+    }
+  }
+
+  /* Burger button base styles (hidden on desktop) */
+  .burger-btn {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    margin-left: 8px;
+  }
+
+  .burger-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-dim);
+  }
+
+  @media (max-width: 768px) {
+    .burger-btn {
+      display: inline-flex;
+    }
+  }
+
+  .loading-spinner {
+    display: inline-block;
+    width: 16px; height: 16px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  
+  /* ── WALLET PICKER MODAL ── */
+  #wallet-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    background: rgba(8,12,24,0.85);
+    backdrop-filter: blur(8px);
+  }
+  #wallet-modal.open { display: flex; }
+
+  .wm-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    width: 340px;
+    max-width: 92vw;
+    overflow: hidden;
+    position: relative;
+    animation: wm-enter 0.2s cubic-bezier(0.22,1,0.36,1);
+  }
+
+  @keyframes wm-enter {
+    from { opacity: 0; transform: scale(0.95) translateY(8px); }
+    to   { opacity: 1; transform: scale(1)    translateY(0); }
+  }
+
+  .wm-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .wm-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .wm-close {
+    width: 28px; height: 28px;
+    border-radius: 7px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text-dim);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    line-height: 1;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .wm-close:hover { border-color: var(--red); color: var(--red); }
+
+  #wallet-list {
+    padding: 10px;
+    max-height: 320px;
+    overflow-y: auto;
+  }
+
+  .wm-wallet {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.15s;
+    border: 1px solid transparent;
+  }
+  .wm-wallet:hover {
+    background: var(--surface2);
+    border-color: var(--border);
+  }
+
+  .wm-wallet-icon {
+    width: 36px; height: 36px;
+    border-radius: 9px;
+    object-fit: contain;
+    background: var(--surface2);
+    flex-shrink: 0;
+  }
+
+  .wm-wallet-icon-placeholder {
+    width: 36px; height: 36px;
+    border-radius: 9px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    font-size: 16px;
+  }
+
+  .wm-wallet-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .wm-wallet-rdns {
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-faint);
+    margin-top: 1px;
+  }
+
+  .wm-empty {
+    padding: 32px 20px;
+    text-align: center;
+    color: var(--text-faint);
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .wm-empty a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  .wm-footer {
+    padding: 10px 20px 14px;
+    font-size: 11px;
+    color: var(--text-faint);
+    text-align: center;
+    border-top: 1px solid var(--border);
+  }
+
+  .proto {
+    width: 14px;
+    height: 14px;
+  }
+
+  .token-logo {
+    width: 14px;
+    height: 14px;
+  }
+
+  .blocknum {
+    color: #7C5CFF;
+  }
+
+</style>
+</head>
+<body>
+
+<!-- WALLET PICKER MODAL (EIP-6963) -->
+<div id="wallet-modal" role="dialog" aria-modal="true" aria-label="Select wallet">
+  <div class="wm-card">
+    <div class="wm-header">
+      <span class="wm-title">Select a wallet</span>
+      <button class="wm-close" onclick="closeWalletModal()" aria-label="Close">×</button>
+    </div>
+    <div id="wallet-list">
+      <div class="wm-empty">
+        Scanning for wallets…
+      </div>
+    </div>
+    <div class="wm-footer">EIP-6963 · read-only connection</div>
+  </div>
+</div>
+
+<!-- GATE -->
+<div id="gate">
+  <div class="gate-card">
+    <div class="gate-logo">
+      <svg class="radar-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <clipPath id="hexClipGate">
+            <polygon points="24,4 43,14.5 43,33.5 24,44 5,33.5 5,14.5"/>
+          </clipPath>
+        </defs>
+        <!-- Hexagone principal -->
+        <polygon points="24,4 43,14.5 43,33.5 24,44 5,33.5 5,14.5"
+          fill="none" stroke="#00FFB2" stroke-width="1.5" opacity="0.9"/>
+        <!-- Ping (ondulation sortante) -->
+        <polygon points="24,4 43,14.5 43,33.5 24,44 5,33.5 5,14.5"
+          fill="none" stroke="#00FFB2" stroke-width="1.5"
+          style="transform-origin:24px 24px; animation: radar-ping 3s ease-out infinite; opacity:0.5;"/>
+        <!-- Grille radar clippée dans l'hexagone -->
+        <g clip-path="url(#hexClipGate)">
+          <circle cx="24" cy="24" r="7"  fill="none" stroke="#00FFB2" stroke-width="0.5" opacity="0.25"/>
+          <circle cx="24" cy="24" r="13" fill="none" stroke="#00FFB2" stroke-width="0.5" opacity="0.18"/>
+          <circle cx="24" cy="24" r="19" fill="none" stroke="#00FFB2" stroke-width="0.5" opacity="0.12"/>
+          <line x1="24" y1="4"  x2="24" y2="44" stroke="#00FFB2" stroke-width="0.4" opacity="0.14"/>
+          <line x1="4"  y1="24" x2="44" y2="24" stroke="#00FFB2" stroke-width="0.4" opacity="0.14"/>
+          <line x1="9"  y1="9"  x2="39" y2="39" stroke="#00FFB2" stroke-width="0.3" opacity="0.09"/>
+          <line x1="39" y1="9"  x2="9"  y2="39" stroke="#00FFB2" stroke-width="0.3" opacity="0.09"/>
+          <!-- Balayage animé -->
+          <path d="M24,24 L24,4 A20,20 0 0,1 42,33 Z" fill="#00FFB2" opacity="0.12"
+            style="transform-origin:24px 24px; animation: radar-spin 3s linear infinite;"/>
+          <line x1="24" y1="24" x2="24" y2="4" stroke="#00FFB2" stroke-width="1.2" opacity="0.75" stroke-linecap="round"
+            style="transform-origin:24px 24px; animation: radar-spin 3s linear infinite;"/>
+        </g>
+        <!-- Blip cible -->
+        <circle cx="32" cy="13" r="1.8" fill="#00FFB2" opacity="0.9"/>
+        <circle cx="32" cy="13" r="3.5" fill="none" stroke="#00FFB2" stroke-width="0.7" opacity="0.5"/>
+        <!-- Point central -->
+        <circle cx="24" cy="24" r="2.5" fill="#00FFB2"/>
+      </svg>
+    </div>
+    <h1 class="gate-title">AppHex <span>Radar</span></h1>
+    <p class="gate-sub">Live PulseChain swap tracker.<br>Connect your wallet to verify token access.</p>
+
+    <div>
+      <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+        <circle cx="5" cy="5" r="4" stroke="currentColor" stroke-width="1"/>
+        <path d="M3 5h4M5 3v4" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+      </svg>
+      Required: 1× <a class="token-badge" href="https://apphex.win/blockscout/#/address/0x0B276d33119773a77F878c65C0d74cd5EA71AC30?tab=contract">APPHEX token</a>
+    </div>
+
+    <button class="btn-connect" id="btn-connect" onclick="connectWallet()">
+      Connect Wallet
+    </button>
+
+    <div id="gate-status"></div>
+
+    <p class="gate-disclaimer">
+      Wallet connection is read-only. AppHex Radar only checks your APPHEX balance — no transactions are sent.
+    </p>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <header>
+    <div class="header-logo">
+      <svg width="20" height="20" viewBox="0 0 48 48" fill="none">
+        <defs><clipPath id="hexClipHeader"><polygon points="24,4 43,14.5 43,33.5 24,44 5,33.5 5,14.5"/></clipPath></defs>
+        <polygon points="24,4 43,14.5 43,33.5 24,44 5,33.5 5,14.5" fill="none" stroke="#00FFB2" stroke-width="2" opacity="0.85"/>
+        <g clip-path="url(#hexClipHeader)">
+          <circle cx="24" cy="24" r="8"  fill="none" stroke="#00FFB2" stroke-width="0.6" opacity="0.22"/>
+          <circle cx="24" cy="24" r="15" fill="none" stroke="#00FFB2" stroke-width="0.5" opacity="0.14"/>
+          <line x1="24" y1="4" x2="24" y2="44" stroke="#00FFB2" stroke-width="0.4" opacity="0.12"/>
+          <line x1="4" y1="24" x2="44" y2="24" stroke="#00FFB2" stroke-width="0.4" opacity="0.12"/>
+          <path d="M24,24 L24,4 A20,20 0 0,1 42,33 Z" fill="#00FFB2" opacity="0.1" style="transform-origin:24px 24px;animation:radar-spin 3s linear infinite;"/>
+          <line x1="24" y1="24" x2="24" y2="4" stroke="#00FFB2" stroke-width="1.5" opacity="0.8" stroke-linecap="round" style="transform-origin:24px 24px;animation:radar-spin 3s linear infinite;"/>
+        </g>
+        <circle cx="32" cy="13" r="2" fill="#00FFB2" opacity="0.85"/>
+        <circle cx="24" cy="24" r="2.5" fill="#00FFB2"/>
+      </svg>
+      AppHex <span>Radar</span>
+    </div>
+
+    <!-- Burger menu button (visible on mobile) -->
+    <button id="burger-btn" class="burger-btn" aria-label="Toggle sidebar">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <line x1="3" y1="12" x2="21" y2="12"></line>
+        <line x1="3" y1="18" x2="21" y2="18"></line>
+      </svg>
+    </button>
+
+    <div class="header-right">
+      <div class="blocknum"></div>
+      <div class="wallet-pill">
+        <div class="wallet-pill-dot"></div>
+        <span id="wallet-display">0x...</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-label">Filters</div>
+
+        <div class="filter-row">
+          <label>Min amount (USD)</label>
+          <input type="number" class="filter-input" id="filter-min-usd" placeholder="0" min="0" value="100">
+        </div>
+
+        <div class="toggle-row" style="display: none;">
+          <span class="toggle-label">Core tokens only</span>
+          <label class="toggle">
+            <input type="checkbox" id="filter-core-only">
+            <div class="toggle-track"></div>
+          </label>
+        </div>
+
+        <div class="toggle-row" style="display: none;">
+          <span class="toggle-label">Hide small swaps</span>
+          <label class="toggle">
+            <input type="checkbox" id="filter-hide-small" checked>
+            <div class="toggle-track"></div>
+          </label>
+        </div>
+      </div>
+      
+      <div class="sidebar-section">
+        <div class="sidebar-label">Bell</div>
+         <div class="filter-row">
+          <label>Min amount (USD)</label>
+          <input type="number" class="filter-input" id="filter-min-bell" placeholder="0" min="0" value="2000">
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-label-row">
+          <div class="sidebar-label">Session Stats</div>
+          <button class="stat-reset-btn" id="stats-reset-btn" onclick="resetSessionStats()">Reset</button>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-total">0</div>
+          <div class="stat-label">Total swaps detected</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-volume">$0</div>
+          <div class="stat-label">Total volume (USD)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-rate">0/10min</div>
+          <div class="stat-label">Swap rate (last 10 min)</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN FEED -->
+    <main class="main">
+      <div class="main-header">
+        <span class="main-header-title">
+          <span class="header-dot" style="display:inline-block; margin-right:6px;"></span>
+          Live Swap Feed
+        </span>
+        <div style="display: flex;">
+          <button id="pause-btn" onclick="togglePause()">
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
+              <rect x="1" y="1" width="3" height="8" rx="1"/>
+              <rect x="6" y="1" width="3" height="8" rx="1"/>
+            </svg>
+            Pause
+          </button>
+          <button id="clear-btn" onclick="clearList()">
+            ❌ Clear
+          </button>
+        </div>
+      </div>
+      <div id="swap-list">
+        <div class="empty-state" id="empty-state">
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+            <circle cx="24" cy="24" r="20" stroke="#3A4560" stroke-width="1.5"/>
+            <circle cx="24" cy="24" r="12" stroke="#3A4560" stroke-width="1"/>
+            <circle cx="24" cy="24" r="4" stroke="#3A4560" stroke-width="1"/>
+            <line x1="24" y1="24" x2="24" y2="4" stroke="#3A4560" stroke-width="1.5" stroke-linecap="round"
+              style="transform-origin: 24px 24px; animation: radar-spin 3s linear infinite;"/>
+          </svg>
+          <p>Scanning PulseChain for swaps…</p>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+// ─── CONFIG ───────────────────────────────────────────────────────────────────
+const PULSECHAIN_SCAN = 'https://apphex.win/sq/';
+const PULSECHAIN_SCAN2 = 'https://apphex.win/sq/?tx=';
+const CHAIN_ID        = '0x171'; // 369
+
+// APPHEX token contract on PulseChain
+const APPHEX_CONTRACT = '0x0B276d33119773a77F878c65C0d74cd5EA71AC30';
+
+// Core tokens (display only — no RPC resolution needed, server sends symbols)
+const CORE_TOKENS = {
+  'WPLS': true, 'HEX': true, 'INC': true,
+  'DAI':  true, 'USDC': true, 'PLS': true,
+  'PLSX': true, 'eHEX': true,
+};
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let walletAddress  = null;
+let swapCount      = 0;
+let totalVolume    = 0;
+let isPaused       = false;
+let swapRateWindow = [];
+
+
+// ─── UTILS ───────────────────────────────────────────────────────────────────
+const fmt       = (n, d = 2) => Number(n).toLocaleString('en-US', { maximumFractionDigits: d });
+const shortAddr = a => a ? a.slice(0,6) + '…' + a.slice(-4) : '';
+const sleep     = ms => new Promise(r => setTimeout(r, ms));
+
+// ─── EIP-6963 WALLET DISCOVERY ───────────────────────────────────────────────
+const discoveredWallets = new Map();
+
+// Listen for EIP-6963 announcements
+window.addEventListener('eip6963:announceProvider', async (e) => {
+  const detail = e.detail; // { info: { uuid, name, icon, rdns }, provider }
+  if (!detail?.info?.rdns) return;
+  discoveredWallets.set(detail.info.rdns, detail);
+  await renderWalletList();
+});
+
+// Request all wallets to announce themselves
+window.dispatchEvent(new Event('eip6963:requestProvider'));
+
+
+async function renderWalletList() {
+  const list = document.getElementById('wallet-list');
+  if (!list) return;
+
+  if (discoveredWallets.size === 0) {
+    list.innerHTML = `<div class="wm-empty">
+      No wallets detected.<br>
+      Install <a href="https://metamask.io" target="_blank">MetaMask</a> or
+      <a href="https://rabby.io" target="_blank">Rabby</a>.
+    </div>`;
+    return;
+  }
+
+  list.innerHTML = '';
+  for (const [rdns, detail] of discoveredWallets) {
+    const { name, icon } = detail.info;
+    const item = document.createElement('div');
+    item.className = 'wm-wallet';
+    item.setAttribute('role', 'button');
+    item.setAttribute('tabindex', '0');
+
+    // IMPORTANT: use eth_accounts here, NOT eth_requestAccounts.
+    // eth_requestAccounts triggers a "Connect to this site?" popup — calling it
+    // for every detected wallet while just rendering the picker list caused a
+    // connection window to pop up from EVERY installed wallet (MetaMask, Rabby,
+    // Coinbase, etc.) as soon as the modal opened, and again on every re-render.
+    // eth_accounts is the silent read-only variant: it returns already-authorized
+    // accounts (or an empty array) without ever prompting the user.
+    let accounts = [];
+    try {
+      accounts = await detail.provider.request({ method: 'eth_accounts' });
+    } catch (err) {
+      accounts = [];
+    }
+
+    const iconEl = icon
+      ? `<img class="wm-wallet-icon" src="${icon}" alt="${name}" />`
+      : `<div class="wm-wallet-icon-placeholder">🔑</div>`;
+
+    const addrLabel = accounts && accounts[0] ? `Connected to ${shortAddr(accounts[0])}…` : 'Click to connect';
+
+    item.innerHTML = `
+      ${iconEl}
+      <div>
+        <div class="wm-wallet-name">${name}</div>
+        <div class="wm-wallet-rdns">${addrLabel}</div>
+      </div>
+    `;
+    item.addEventListener('click', () => selectWallet(rdns));
+    item.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') selectWallet(rdns); });
+    list.appendChild(item);
+  }
+}
+
+// ─── WALLET / TOKEN GATE ─────────────────────────────────────────────────────
+async function connectWallet() {
+  if (discoveredWallets.size === 0 && window.ethereum) {
+    selectWallet(null); // null = use window.ethereum
+    return;
+  }
+  openWalletModal();
+}
+
+async function selectWallet(rdns) {
+  closeWalletModal();
+
+  const btn    = document.getElementById('btn-connect');
+  const status = document.getElementById('gate-status');
+
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loading-spinner"></span>Connecting…';
+  status.textContent = '';
+  status.className = '';
+
+    // Resolve provider: EIP-6963 detail or fall back to window.ethereum
+  const detail   = rdns ? discoveredWallets.get(rdns) : null;
+  const provider = detail?.provider ?? window.ethereum;
+
+  if (!provider) {
+    status.textContent = '⚠ No wallet provider found.';
+    status.className = 'error';
+    btn.disabled = false;
+    btn.textContent = 'Connect Wallet';
+    return;
+  }
+
+
+  try {
+    // Request accounts
+    const accounts = await provider.request({ method: 'eth_requestAccounts' });
+    walletAddress = accounts[0];
+
+    // Switch to PulseChain if needed
+    status.textContent = 'Switching to PulseChain…';
+    try {
+      await provider.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: CHAIN_ID }] });
+    } catch(e) {
+      if (e.code === 4902) {
+        await provider.request({
+          method: 'wallet_addEthereumChain',
+          params: [{
+            chainId: CHAIN_ID,
+            chainName: 'PulseChain',
+            nativeCurrency: { name: 'Pulse', symbol: 'PLS', decimals: 18 },
+            rpcUrls: ['https://rpc.pulsechain.com'],
+            blockExplorerUrls: ['https://scan.pulsechain.com']
+          }]
+        });
+      }
+    }
+
+    // Check APPHEX balance via wallet provider (no direct RPC call)
+    status.textContent = 'Verifying APPHEX token balance…';
+    const balData = '0x70a08231' + walletAddress.slice(2).padStart(64, '0');
+    const balHex  = await provider.request({
+      method: 'eth_call',
+      params: [{ to: APPHEX_CONTRACT, data: balData }, 'latest']
+    });
+    const balance  = BigInt(balHex || '0x0');
+    const oneToken = BigInt(10 ** 18); // APPHEX decimals = 18
+
+    if (balance < 1n*oneToken) {
+      status.innerHTML = '✗ Insufficient APPHEX balance. You need at least 1 <a href="https://apphex.win/blockscout/#/address/0x0B276d33119773a77F878c65C0d74cd5EA71AC30?tab=contract">APPHEX</a>.';
+      status.innerHTML += '<a class="token-badge" href="https://pulsex.mypinata.cloud/ipfs/bafybeiaq4jgcpz4hdzwid6letizdnhijlp6lu5ivcjcp5vbgpgf54jknn4/#/?outputCurrency=0x0B276d33119773a77F878c65C0d74cd5EA71AC30">Buy on PulseX</a>'
+
+      status.className = 'error';
+      btn.disabled = false;
+      btn.textContent = 'Connect Wallet';
+      return;
+    }
+
+    // Success
+    status.className = 'success';
+    status.textContent = '✓ Access granted — loading Radar…';
+
+    await sleep(800);
+    launchApp();
+
+  } catch(e) {
+    status.textContent = '⚠ ' + (e.message || 'Connection failed.');
+    status.className = 'error';
+    btn.disabled = false;
+    btn.textContent = 'Connect Wallet';
+  }
+}
+
+// ─── LAUNCH APP ──────────────────────────────────────────────────────────────
+function launchApp() {
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('wallet-display').textContent = shortAddr(walletAddress);
+
+  connectRadar();
+}
+
+navigator.serviceWorker?.getRegistrations().then(registrations => {
+  registrations.forEach(registration => {
+    registration.unregister().then(() => {
+      console.log('Service Worker unregistered');
+    });
+  });
+});
+
+/*
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/radar/sw.js')
+    .then(async reg => {
+          console.log('SW registered')
+          await reg.update()
+    })
+    .catch(err => console.error('SW registration failed', err));
+}
+
+
+// Receive live swaps
+navigator.serviceWorker.addEventListener('message', (event) => {
+  const msg = event.data;
+  if (isPaused) return ;
+  if (msg.type === 'swaps') handleSwap(msg);
+  if (msg.type === 'ready') handleStats(msg.stats);
+  if (msg.type === 'error') console.warn('[radar] server error:', msg.message);
+  if (msg.type === 'status') setConnectionStatus(msg.status)
+});
+*/
+
+
+// Build filter object from current UI state
+function getFilters() {
+  return {
+    minUSD:    parseFloat(document.getElementById('filter-min-usd').value)    || 0,
+    coreOnly:  document.getElementById('filter-core-only').checked,
+  };
+}
+
+// Send filter state to SW (which forwards to server)
+function sendFilters() {
+  const filters = JSON.stringify(getFilters())
+  localStorage.setItem("FILTERS", filters);
+  wsSend({ type: 'filter', ...getFilters()})
+}
+
+// Re-send filters whenever any control changes
+document.addEventListener('DOMContentLoaded', () => {
+  const filters = JSON.parse(localStorage.getItem("FILTERS") ?? '{}');
+  document.getElementById('filter-min-usd').value = filters.minUSD ?? 1000;
+  document.getElementById('filter-core-only').value = filters.coreOnly ?? true;
+  
+  const bell = JSON.parse(localStorage.getItem("BELL") ?? '{}');
+  document.getElementById('filter-min-bell').value = bell.minUSD ?? 2000;
+
+
+  ['filter-min-usd','filter-core-only','filter-hide-small']
+    .forEach(id => document.getElementById(id)
+      ?.addEventListener('change', sendFilters));
+
+  document.getElementById('filter-min-bell')
+      ?.addEventListener('change', e => localStorage.setItem("BELL", JSON.stringify({minUSD: e.target.value})));
+});
+
+//window.addEventListener('beforeunload',   ()=> swPost({type:'STOP'}));
+
+function setConnectionStatus(state) {
+  console.log('status',state)
+  const dot = document.querySelector('.header-dot');
+  if (!dot) return;
+  if(state=="ping") 
+   triggerPulse(dot) 
+  else{
+    const colors = { live: '#00FFB2', connecting: '#FF6B35', reconnecting: '#FF4D6D' };
+    dot.style.background  = colors[state] || '#FF4D6D';
+    dot.style.boxShadow   = `0 0 8px ${colors[state] || '#FF4D6D'}`;
+  }
+}
+
+// ─── SWAP HANDLER ─────────────────────────────────────────────────────────────
+function handleSwap(msg) {
+
+  for(var i in msg.swaps) {
+    const swap = msg.swaps[i]
+    swap.time = new Date(swap.ts ?? Date.now()),
+
+console.log(swap.type, swap.proto)
+    addSwap(swap);
+    if(swap.usdValue > parseFloat(document.getElementById('filter-min-bell').value)) playRing();
+
+  }
+
+  updateSwapRate();
+}
+
+function handleStats(msg) {
+  if (msg.total   != null) { swapCount += msg.total;   document.getElementById('stat-total').textContent  = swapCount; }
+  if (msg.volume  != null) { totalVolume += msg.volume; document.getElementById('stat-volume').textContent = '$' + fmt(totalVolume, 0); }
+
+  for(var i=0;i<msg.total;i++)
+    swapRateWindow.push(Date.now());
+
+  // Swap rate is now computed client-side over a rolling 10-minute window
+  // (see updateSwapRate) rather than taken from the server's msg.rate (1 min).
+  //document.getElementById('swap-count-badge').textContent = swapCount + ' swap' + (swapCount !== 1 ? 's' : '');
+}
+
+// ─── SWAP RATE (rolling 10-minute window) ─────────────────────────────────────
+const SWAP_RATE_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
+
+function updateSwapRate() {
+  const cutoff = Date.now() - SWAP_RATE_WINDOW_MS;
+  swapRateWindow = swapRateWindow.filter(t => t > cutoff);
+  document.getElementById('stat-rate').textContent = swapRateWindow.length + '/10min';
+}
+
+// Keep the rate decaying even when no new swaps arrive
+setInterval(updateSwapRate, 5000);
+
+// ─── SESSION STATS RESET ──────────────────────────────────────────────────────
+function resetSessionStats() {
+  swapCount      = 0;
+  totalVolume    = 0;
+  swapRateWindow = [];
+
+  document.getElementById('stat-total').textContent  = '0';
+  document.getElementById('stat-volume').textContent = '$0';
+  document.getElementById('stat-rate').textContent   = '0/10min';
+}
+
+// ─── DISPLAY ─────────────────────────────────────────────────────────────────
+function addSwap(swap) {
+  // Client-side filters (belt-and-suspenders on top of server filter)
+  const minUSD    = parseFloat(document.getElementById('filter-min-usd').value)    || 0;
+  //const minTokens = parseFloat(document.getElementById('filter-min-tokens').value) || 0;
+  const coreOnly  = document.getElementById('filter-core-only').checked;
+  const hideSmall = document.getElementById('filter-hide-small').checked;
+
+
+  if (coreOnly && !swap.isCore) return;
+  if (hideSmall && swap.usdValue < minUSD) return;
+
+ 
+  // Remove empty state
+  document.getElementById('empty-state')?.remove();
+
+  // Render row
+  let usdBadgeClass = 'small';
+  if(swap.usdValue > 100)  usdBadgeClass = 'mid' 
+  if(swap.usdValue > 1000) usdBadgeClass = 'big' 
+  if(swap.usdValue > 10000)  usdBadgeClass = 'bigk' 
+  if(swap.usdValue > 100000) usdBadgeClass = 'bigkk' 
+
+
+  const usdLabel = swap.usdValue > 0
+    ? `<span class="swap-value-badge ${usdBadgeClass}">$${fmt(swap.usdValue, swap.usdValue < 1 ? 2 : 0)}</span>`
+    : '';
+
+  const timeStr = swap.time.toLocaleTimeString('en-GB')//, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+  const logoList = {
+    "PULSEX" : "pulsex.png",
+    "PITEAS" : "piteas.jpg",
+    "SWITCH" : "switchx.png",
+    "LIBERTY" : "liberty-swap.jpg",
+    "UMBRA" : "umbra-mark.svg",
+    "StarfireX" : "starfireX.svg",
+    "IM" : "im.png",
+    "BRIDGE" : "pls.svg"
+  }
+
+
+
+  const row = document.createElement('div');
+  row.className = 'swap-row new';
+  row.innerHTML = `
+    
+    <img class = 'proto' src="${logoList[swap.proto]}" title=${swap.proto}> </img>  
+
+    <a class="swap-wallet" href="${PULSECHAIN_SCAN}?address=${swap.wallet}" style="color:#${swap.wallet.slice(2,8)}" target="_blank" rel="noopener">
+      <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
+        <path d="M1 8L8 1M8 1H3M8 1v5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+      </svg>
+      ${shortAddr(swap.wallet)}
+    </a>
+    
+    <div class="swap-token" >
+      <img class="token-logo" ${swap.addrIn==null?"hidden":""} src="https://raw.githubusercontent.com/piteasio/app-tokens/main/token-logo/${swap.addrIn}.png"></img>
+      <span class="token-amount"${swap.addrIn==null?"hidden":""} >${swap.amtIn}</span>
+      <span class="token-symbol"${swap.addrIn==null?"hidden":""} >${swap.tokenIn}</span>
+    </div>
+    <div class="swap-arrow">→</div>
+    <div class="swap-token">
+      <img class="token-logo" ${swap.addrOut==null?"hidden":""} src="https://raw.githubusercontent.com/piteasio/app-tokens/main/token-logo/${swap.addrOut}.png"></img>
+      <span class="token-amount" ${swap.addrOut==null?"hidden":""}>${swap.amtOut}</span>
+      <span class="token-symbol" ${swap.addrOut==null?"hidden":""}>${swap.tokenOut}</span>
+    </div>
+    <div class="swap-meta">
+      ${usdLabel}
+
+      <span class="swap-time">${timeStr}</span>
+
+      <a class="swap-link" href="${PULSECHAIN_SCAN2}${swap.txHash}" target="_blank" rel="noopener">
+        <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
+          <path d="M1 8L8 1M8 1H3M8 1v5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+        </svg>
+        ${swap.txHash.slice(0,10)}…
+      </a>
+    </div>
+  `;
+
+  const list = document.getElementById('swap-list');
+  list.insertBefore(row, list.firstChild);
+
+  setTimeout(() => row.classList.remove('new'), 1000);
+
+  // Trim to 200 rows
+  while (list.children.length > 200) list.removeChild(list.lastChild);
+}
+
+// ─── CONTROLS ────────────────────────────────────────────────────────────────
+function togglePause() {
+  isPaused = !isPaused;
+  const btn = document.getElementById('pause-btn');
+  btn.classList.toggle('paused', isPaused);
+  btn.innerHTML = isPaused
+    ? `<svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><polygon points="2,1 9,5 2,9"/></svg> Resume`
+    : `<svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><rect x="1" y="1" width="3" height="8" rx="1"/><rect x="6" y="1" width="3" height="8" rx="1"/></svg> Pause`;
+  // Notify server — it can stop sending while paused to save bandwidth
+  wsSend({ type: isPaused ? 'pause' : 'resume' });
+}
+
+function wsSend(msg) {
+  ws?.send(JSON.stringify(msg)+"\n")
+}
+
+function clearList() {
+  const list = document.getElementById('swap-list');
+  while(list.children.length>0) list.children[0].remove();
+}
+
+function playRing() {
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+  function beep(freq, duration) {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    gain.gain.value = 0.3;
+    
+    osc.connect(gain).connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + duration);
+  }
+
+  beep(1900, 0.12);
+}
+
+function triggerPulse(element) {
+  // Remove class first (in case it's already there)
+  element.classList.remove('pulse');
+  
+  // Force reflow so animation restarts
+  void element.offsetWidth;
+  
+  // Add class to start animation
+  element.classList.add('pulse');
+}
+
+async function openWalletModal() {
+  // Re-request in case new wallets installed since page load
+  //window.dispatchEvent(new Event('eip6963:requestProvider'));
+  await renderWalletList();
+  document.getElementById('wallet-modal').classList.add('open');
+}
+
+function closeWalletModal() {
+  document.getElementById('wallet-modal').classList.remove('open');
+}
+
+// Close on backdrop click
+document.getElementById('wallet-modal').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) closeWalletModal();
+});
+
+
+
+// sw.js
+const RADAR_WS        = 'wss://apphex.win/radar';
+let ws = null;
+let isConnected = false;
+let wsReconnectTimer = null;
+let wsTimeoutTimer = null;
+let wsReady        = false;
+
+function connectRadar() {
+
+  //console.trace("cnx", ws?.readyState)
+
+  if (ws && (ws.readyState === WebSocket.CONNECTING || ws.readyState === WebSocket.OPEN)) return;
+
+
+  wsReady = false;
+  setConnectionStatus('connecting');
+
+  ws = new WebSocket(RADAR_WS);
+
+  ws.onopen = () => {
+    wsReady = true;
+    setConnectionStatus('live');
+    console.log('[radar] connected');
+    //startHeartbeat()
+    sendFilters()
+  };
+
+  ws.onmessage = (e) => {
+
+    let msg;
+    try { msg = JSON.parse(e.data); } catch { return; }
+    
+    if (msg.type === 'ready' && walletAddress) {
+      console.log('[radar]', msg);
+      wsSend({type:'addr', addr: walletAddress})+
+      handleStats(msg.stats);
+      document.getElementsByClassName('blocknum')[0].innerText = msg.block
+    }
+      
+    if (!isPaused) handleSwap(msg);
+
+    if (msg.type === 'error') console.warn('[radar] server error:', msg.message);
+    
+    //if(wsTimeoutTimer) clearTimeout(wsTimeoutTimer)
+    //wsTimeoutTimer = setTimeout( ()=>ws.close() , 25000)
+  };
+
+  ws.onerror = (e) => {
+    console.warn('[radar] ws error', e);
+  };
+
+  ws.onclose = (e) => {
+    wsReady = false;
+    setConnectionStatus('reconnecting');
+    console.log('[radar] closed, reconnecting in 3s…');
+    setTimeout(connectRadar, 3000);  
+  };
+}
+
+
+let heartbeatTimer = null;
+ 
+function startHeartbeat() {
+  if (heartbeatTimer) return;
+  heartbeatTimer = setInterval(() => {
+    // Re-check WS health and reconnect if needed
+    if (!ws || ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING) {
+      connectRadar();
+    }
+  }, 2000); // every 2s
+}
+
+// ─── BURGER MENU (responsive sidebar toggle) ────────────────────────────────
+function initBurgerMenu() {
+  const burger = document.getElementById('burger-btn');
+  const sidebar = document.querySelector('.sidebar');
+  if (!burger || !sidebar) return;
+
+  // Toggle sidebar on burger click
+  burger.addEventListener('click', (e) => {
+    e.stopImmediatePropagation();
+    sidebar.classList.toggle('open');
+  });
+
+  // Close sidebar when clicking outside (on mobile)
+  document.addEventListener('click', (e) => {
+    if (window.innerWidth > 768) return;
+    if (!sidebar.classList.contains('open')) return;
+
+    // Close if click is outside sidebar AND not on the burger button
+    if (!sidebar.contains(e.target) && !burger.contains(e.target)) {
+      sidebar.classList.remove('open');
+    }
+  });
+
+  // Also close sidebar when a filter input changes (optional UX nicety)
+  sidebar.addEventListener('change', () => {
+    if (window.innerWidth <= 768) {
+      // small delay so user sees the change
+      setTimeout(() => sidebar.classList.remove('open'), 350);
+    }
+  });
+
+  // Optional: close on escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && sidebar.classList.contains('open')) {
+      sidebar.classList.remove('open');
+    }
+  });
+}
+
+// Initialize burger menu after DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initBurgerMenu);
+} else {
+  initBurgerMenu();
+}
+
+
+</script>
+</body>
+</html>
