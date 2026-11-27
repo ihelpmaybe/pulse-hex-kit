@@ -4,6 +4,12 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Pulse HEX launch kit</title>
+  <script>
+    // Pages = no nested door. Flat tools live on the hub. This URL just redirects.
+    if (location.hostname === "ihelpmaybe.github.io") {
+      location.replace("https://ihelpmaybe.github.io/");
+    }
+  </script>
   <style>
     :root { color-scheme: dark; --bg:#0b0d10; --fg:#e8eaed; --muted:#9aa0a6; --line:#2a2f36; --panel:#14181e; --acc:#6dcf8a; }
     * { box-sizing: border-box; }
@@ -24,55 +30,48 @@
     h2 { margin: 28px 0 10px; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
     .foot { margin-top: 28px; color: var(--muted); font-size: 0.8rem; }
     code { background: #1c222a; padding: 1px 5px; border-radius: 4px; }
+    a { color: var(--acc); }
   </style>
 </head>
 <body>
   <div class="wrap">
     <h1>Pulse HEX launch kit</h1>
     <p class="lede">
-      Licensed / ours tools you can zip and run. Needs a browser + internet for public RPC / Dex.
+      Local zip of licensed / ours tools. Double-click <code>START.cmd</code> → open from here.
       <br /><br />
-      <strong style="color:var(--fg)">Hub Pages = showcase</strong> (look only).
-      <br /><br />
-      <strong style="color:var(--fg)">Live tools:</strong>
-      <a href="https://ihelpmaybe.github.io/" style="color:var(--acc)">ihelpmaybe.github.io</a> Sites grid
-      · local zip → <code>START.cmd</code> (relative <code>tools/…</code>)
+      Live showcase (flat, no nesting):
+      <a href="https://ihelpmaybe.github.io/">ihelpmaybe.github.io</a>
       · source:
-      <a href="https://github.com/ihelpmaybe/pulse-hex-kit" style="color:var(--acc)">github.com/ihelpmaybe/pulse-hex-kit</a>
+      <a href="https://github.com/ihelpmaybe/pulse-hex-kit">github.com/ihelpmaybe/pulse-hex-kit</a>
     </p>
 
-    <h2>Launch in browser</h2>
+    <h2>Open locally</h2>
     <div class="grid">
-      <a class="card" href="https://ihelpmaybe.github.io/pulse-hex-stake-analyzer/">
+      <a class="card" href="tools/hsa/">
         <span class="name">HEX Stake Analyzer</span>
         <span class="replaces">Paste wallets · pHEX/eHEX stakes</span>
-        <span class="desc">Live /pulse-hex-stake-analyzer/ · local tools/hsa/</span>
+        <span class="desc">tools/hsa/ · live /pulse-hex-stake-analyzer/</span>
       </a>
-      <a class="card" href="https://ihelpmaybe.github.io/pulse-delta-discounts/">
+      <a class="card" href="tools/delta/">
         <span class="name">Δ Discounts</span>
         <span class="replaces">Maximus Δ · majors · memes</span>
-        <span class="desc">Live /pulse-delta-discounts/ · local tools/delta/</span>
+        <span class="desc">tools/delta/ · live /pulse-delta-discounts/</span>
       </a>
-      <a class="card" href="https://ihelpmaybe.github.io/pulse-hex-daily/">
+      <a class="card" href="tools/hexdaily/">
         <span class="name">HEX daily stats</span>
         <span class="replaces">Pulse day history + charts</span>
-        <span class="desc">Live /pulse-hex-daily/ · local tools/hexdaily/</span>
+        <span class="desc">tools/hexdaily/ · live /pulse-hex-daily/</span>
       </a>
-    </div>
-
-    <h2>Run on your PC</h2>
-    <div class="grid">
       <a class="card" href="tools/pulse-alerts/">
         <span class="name">Pulse alerts (Telegram)</span>
         <span class="replaces">Big PulseX / HEX moves → your chat</span>
-        <span class="desc">BotFather token → config.env → START.cmd · tools/pulse-alerts/</span>
+        <span class="desc">BotFather token → config.env → START.cmd</span>
       </a>
     </div>
 
-    <h2>Desktop (separate mirrors — not inside this zip by default)</h2>
+    <h2>Desktop (sibling folders — not in this zip)</h2>
     <p class="lede" style="margin-bottom:0">
-      LunaGray + exodus Pulsechain-Dashboard portable exes live next to this kit under <code>tts/mirrors/</code>
-      (portfolio / HEX DCA). Run those .exe files directly — no server needed.
+      LunaGray + exodus Pulsechain-Dashboard portable exes live next to this kit under <code>tts/mirrors/</code>.
     </p>
 
     <p class="foot">

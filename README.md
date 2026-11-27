@@ -1,12 +1,13 @@
 # Pulse HEX launch kit (copy-paste)
 
-**Live (each tool has its own site on the hub):** [ihelpmaybe.github.io](https://ihelpmaybe.github.io/)  
+**Live tools (flat on the hub — no nested kit door):** [ihelpmaybe.github.io](https://ihelpmaybe.github.io/)  
 - [HEX daily](https://ihelpmaybe.github.io/pulse-hex-daily/) · [Δ Discounts](https://ihelpmaybe.github.io/pulse-delta-discounts/) · [HSA](https://ihelpmaybe.github.io/pulse-hex-stake-analyzer/)  
-**Source / zip kit:** [github.com/ihelpmaybe/pulse-hex-kit](https://github.com/ihelpmaybe/pulse-hex-kit)
+**This repo = zip / source only:** [github.com/ihelpmaybe/pulse-hex-kit](https://github.com/ihelpmaybe/pulse-hex-kit)  
+(`/pulse-hex-kit/` on Pages redirects to the hub.)
 
 **Hub Pages = showcase.** Look in the browser. Do **not** treat github.io as a wallet front end.
 
-**Anyone offline:** zip this folder → unzip anywhere → double-click `START.cmd` → hub opens in the browser.
+**Anyone offline:** zip this folder → unzip anywhere → double-click `START.cmd` → local hub opens in the browser.
 
 This kit ships **licensed / ours** tools only (no SPDX-less look-mirrors).
 
