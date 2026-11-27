@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pulse alerts — copy folder</title>
+  <style>
+    :root { color-scheme: dark; --bg:#0b0d10; --fg:#e8eaed; --muted:#9aa0a6; --acc:#6dcf8a; --line:#2a2f36; }
+    body { margin: 0; font: 16px/1.5 system-ui, Segoe UI, sans-serif; background: var(--bg); color: var(--fg); }
+    main { max-width: 36rem; margin: 0 auto; padding: 2rem 1.25rem 3rem; }
+    h1 { font-size: 1.35rem; margin: 0 0 0.5rem; }
+    p, li { color: var(--muted); }
+    strong { color: var(--fg); }
+    code, pre { background: #14181e; border: 1px solid var(--line); border-radius: 8px; }
+    code { padding: 0.1em 0.35em; font-size: 0.9em; }
+    pre { padding: 0.9rem 1rem; overflow: auto; color: var(--fg); }
+    a { color: var(--acc); }
+    ol { padding-left: 1.2rem; }
+    .tag { color: var(--acc); font-size: 0.8rem; letter-spacing: 0.04em; text-transform: uppercase; }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="tag">MIT · Python stdlib · zip &amp; run</p>
+    <h1>Pulse alerts</h1>
+    <p>Copy this folder. Run your own Telegram pings on big PulseX / HEX swaps. No account with us.</p>
+    <ol>
+      <li>Download the <a href="https://github.com/ihelpmaybe/pulse-hex-kit">pulse-hex-kit</a> → open <code>tools/pulse-alerts/</code></li>
+      <li>Windows: double-click <strong>SETUP.cmd</strong></li>
+      <li>Put BotFather token + chat id in <code>config.env</code></li>
+      <li>Double-click <strong>START.cmd</strong></li>
+    </ol>
+    <pre>python alert.py --dry-run --once</pre>
+    <p>That line tests the public feed with zero Telegram credentials.</p>
+    <p><a href="../../">← kit hub</a> · <a href="https://github.com/ihelpmaybe/pulse-hex-kit/tree/main/tools/pulse-alerts">source on GitHub</a></p>
+  </main>
+</body>
+</html>
