@@ -1,11 +1,5 @@
-# appHEX Radar (kit copy)
+# appHEX Radar — withdrawn
 
-**Open clone.** Live PulseChain swap feed. The upstream APPHEX wallet gate is **stripped** — no Connect, no token check.
+**Not open source.** Proprietary front-end removed from the kit.
 
-Hub: https://ihelpmaybe.github.io/pulse-apphex-radar/
-
-## Run local
-
-`npx --yes serve -l 5179 .` → open `http://localhost:5179/`
-
-Same ungated board as the hub. Radar does not send transactions.
+**Job (for a clean rebuild later):** live PulseChain DEX swap tape — USD size, tokens in/out, wallet, min-size filter, optional big-trade alert. Use public Pulse / DexScreener APIs — do not copy apphex.win assets or their `wss://apphex.win/radar` client.

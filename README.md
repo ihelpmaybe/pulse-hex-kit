@@ -1,7 +1,7 @@
 # Pulse HEX launch kit (copy-paste)
 
 **Live (each tool has its own site on the hub):** [ihelpmaybe.github.io](https://ihelpmaybe.github.io/)  
-- [HEX daily](https://ihelpmaybe.github.io/pulse-hex-daily/) · [Δ Discounts](https://ihelpmaybe.github.io/pulse-delta-discounts/) · [HSA](https://ihelpmaybe.github.io/pulse-hex-stake-analyzer/) · [HEXmob](https://ihelpmaybe.github.io/pulse-hexmob/) · [Radar](https://ihelpmaybe.github.io/pulse-apphex-radar/) · [SQ](https://ihelpmaybe.github.io/pulse-apphex-sq/)  
+- [HEX daily](https://ihelpmaybe.github.io/pulse-hex-daily/) · [Δ Discounts](https://ihelpmaybe.github.io/pulse-delta-discounts/) · [HSA](https://ihelpmaybe.github.io/pulse-hex-stake-analyzer/) · [HEXmob](https://ihelpmaybe.github.io/pulse-hexmob/)  
 **Source / zip kit:** [github.com/ihelpmaybe/pulse-hex-kit](https://github.com/ihelpmaybe/pulse-hex-kit)
 
 **Hub Pages = showcase.** Look in the browser. Do **not** treat github.io as a wallet front end.
@@ -21,9 +21,9 @@ Hub `/pulse-hexmob/` and `tools/hexmob/` are **look-only** (no Connect).
 
 See `tools/hexmob/README.md`.
 
-### appHEX Radar — open clone
+### appHEX — not shipped
 
-Hub `/pulse-apphex-radar/` and `tools/apphex-radar/` are the live swap feed with the APPHEX wallet gate **stripped**. See `tools/apphex-radar/README.md`.
+Radar / SQ are **not OSS**. Proprietary mirrors were withdrawn from hub + kit. Product shape only: live swap tape / block board — rebuild later on public Pulse data if wanted.
 
 ## What’s inside
 
@@ -33,8 +33,6 @@ Hub `/pulse-apphex-radar/` and `tools/apphex-radar/` are the live swap feed with
 | HEXmob / TShare | Stake UI (showcase on hub; wallet = run local) | go.hex.com downtime |
 | Δ Discounts | Maximus Δ + majors on Pulse | LookIntoMaxi paid Δ |
 | HEX daily stats | Pulse day history + live mirror button | HEXDailyStats / hexstats.today |
-| appHEX Radar | Live Pulse swap feed (open — no APPHEX gate) | apphex.win Radar |
-
 HEX daily also includes `tools/hexdaily/worker-src/` — Cloudflare Worker clone of the feed ([mrmcgit/hex-stats](https://github.com/mrmcgit/hex-stats)). See `tools/hexdaily/DEPLOY.md`.
 
 ## Needs
